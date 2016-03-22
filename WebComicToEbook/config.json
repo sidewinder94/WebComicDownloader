@@ -1,9 +1,9 @@
 [
   {
     "BaseAddress": "http://beyondtheimpossible.org/comic/1-before-the-beginning-2/",
-    "NextButtonSelector": "class=comic-nav-base comic-nav-next",
-    "ChapterTitleSelector": "class=post-title",
-    "ChapterContentSelector": "class=entry",
+    "NextButtonSelector": "(?:href=\"(\\S+)\")? class=\"comic-nav-base comic-nav-next\">",
+    "ChapterTitleSelector": "class=\"post-title\">([^<]*)<",
+    "ChapterContentSelector": "<div class=\"entry\">((?:.|\n)*)<div class=\"post-extras\">",
     "Author": "Ffurla",
     "Date": "2016-03-18T13:24:36.2855417+01:00",
     "Title": "Beyond the Impossible",

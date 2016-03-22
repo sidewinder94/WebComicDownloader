@@ -6,6 +6,8 @@ using System.Xml.Linq;
 
 using WebComicToEbook.Configuration;
 using WebComicToEbook.Properties;
+using WebComicToEbook.Scraper;
+
 
 namespace WebComicToEbook
 {
@@ -18,6 +20,8 @@ namespace WebComicToEbook
                 if (File.Exists(Settings.DefaultConfigFile))
                 {
                     Settings.Instance.Load();
+                    var scraper = new WebComicScraper();
+                    scraper.StartScraping(Settings.Instance.Entries[0]);
                     Settings.Instance.Save();
                 }
                 else

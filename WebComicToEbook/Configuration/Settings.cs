@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
-
 using Newtonsoft.Json;
 
 namespace WebComicToEbook.Configuration
@@ -10,13 +8,7 @@ namespace WebComicToEbook.Configuration
     {
         public const string DefaultConfigFile = "config.json";
 
-        public static Settings Instance
-        {
-            get
-            {
-                return Holder.settings;
-            }
-        }
+        public static Settings Instance => Holder.settings;
 
         private Settings()
         {
