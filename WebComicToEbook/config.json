@@ -1,12 +1,35 @@
 [
-  {
-    "BaseAddress": "http://beyondtheimpossible.org/comic/1-before-the-beginning-2/",
-    "NextButtonSelector": "(?:href=\"(\\S+)\")? class=\"comic-nav-base comic-nav-next\">",
-    "ChapterTitleSelector": "class=\"post-title\">([^<]*)<",
-    "ChapterContentSelector": "<div class=\"entry\">((?:.|\n)*)<div class=\"post-extras\">",
-    "Author": "Ffurla",
-    "Date": "2016-03-18T13:24:36.2855417+01:00",
-    "Title": "Beyond the Impossible",
-    "Description": null
-  }
+    {
+        "Parser": "RegExp",
+        "BaseAddress": "http://beyondtheimpossible.org/comic/1-before-the-beginning-2/",
+        "NextButtonSelector": "(?:href=\"(\\S+)\")? class=\"comic-nav-base comic-nav-next\">",
+        "ChapterTitleSelector": "class=\"post-title\">([^<]*)<",
+        "ChapterContentSelector": "<div class=\"entry\">((?:.|\n)*)<div class=\"post-extras\">",
+        "Author": "Ffurla",
+        "Date": "2016-03-18T13:24:36.2855417+01:00",
+        "Title": "Beyond the Impossible",
+        "Description": null
+    },
+    {
+        "Parser": "XPath",
+        "BaseAddress": "http://www.wuxiaworld.com/tdg-index/tdg-chapter-1/",
+        "NextButtonSelector": "//@href[text() = 'Next Chapter']",
+        "ChapterTitleSelector": "//article//strong",
+        "ChapterContentSelector": "//*[@class='entry-content']/p[position() > 2]",
+        "Author": "Unknown",
+        "Date": "2016-03-18T13:24:36.2855417+01:00",
+        "Title": "Tales of Demons And Gods",
+        "Description": "Translated by Thyaeria"
+    },
+    {
+        "Parser": "XPath",
+        "BaseAddress": "http://beyondtheimpossible.org/comic/1-before-the-beginning-2/",
+        "NextButtonSelector": "//@href[@class='comic-nav-base comic-nav-next']",
+        "ChapterTitleSelector": "//*[@class='post-title']",
+        "ChapterContentSelector": "//*[@class='entry']",
+        "Author": "Ffurla",
+        "Date": "2016-03-18T13:24:36.2855417+01:00",
+        "Title": "Beyond the Impossible",
+        "Description": null
+    }
 ]

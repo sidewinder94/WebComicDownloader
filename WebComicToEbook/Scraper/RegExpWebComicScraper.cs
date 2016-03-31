@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using System.Xml.XPath;
+
 using Utils.Text;
 using WebComicToEbook.Configuration;
 using WebComicToEbook.EmbeddedResources;
@@ -14,25 +15,11 @@ using static Utils.Misc.Misc;
 using EPubDocument = Epub.Document;
 namespace WebComicToEbook.Scraper
 {
-    public class RegExpWebComicScraper : IWebComicScraper
+    public class RegExpWebComicScraper : BaseWebComicScraper
     {
-        private int _navCounter = 1;
+        
 
-        private int _pageCounter = 1;
-
-        private string _pageTemplate = Resources.page.AsString();
-
-        public void StartScraping(WebComicEntry entry)
-        {
-            var ebook = new EPubDocument();
-            ebook.AddStylesheetData("style.css", Resources.style);
-            ScrapeWebPage(entry, ebook);
-            ebook.Generate($"{entry.Title}.epub");
-            Console.WriteLine($"\nFinished Compiling book {entry.Title}");
-
-        }
-
-        private void ScrapeWebPage(WebComicEntry entry, EPubDocument ebook, string nextPageUrl = null)
+        protected override void ScrapeWebPage(WebComicEntry entry, EPubDocument ebook, string nextPageUrl = null)
         {
             String title = "";
             String content = "";
@@ -64,25 +51,12 @@ namespace WebComicToEbook.Scraper
                     content += v.Remove(v.LastIndexOf("</div>"));
                 }
 
-                String page = _pageTemplate.Replace("%%CONTENT%%", content);
-                String pageName = $"page{_pageCounter}.xhtml";
-                ebook.AddXhtmlData(pageName, page);
-                ebook.AddNavPoint(title.IsEmpty() ? $"Chapter {_pageCounter}" : title, pageName, _navCounter++);
-                Console.SetCursorPosition(0, Console.CursorTop);
-                Console.Write($"Completed Page {_pageCounter}");
-                _pageCounter++;
-
+                this.AddPage(ebook, content, title);
 
                 Unless(nextUrl.IsEmpty(), () => ScrapeWebPage(entry, ebook, nextUrl));
             }
         }
 
-
-        private void SetMetadata(WebComicEntry entry, EPubDocument document)
-        {
-            document.AddAuthor(entry.Author);
-            document.AddDescription(entry.Description);
-            document.AddTitle(entry.Title);
-        }
+        
     }
 }

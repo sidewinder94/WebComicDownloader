@@ -10,6 +10,8 @@ namespace WebComicToEbook.Configuration
 
         public static Settings Instance => Holder.settings;
 
+        public bool Overwrite = false;
+
         private Settings()
         {
             this.Entries = new List<WebComicEntry>();

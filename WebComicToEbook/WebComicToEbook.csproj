@@ -62,7 +62,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Scraper\HAPWebComicScraper.cs" />
-    <Compile Include="Scraper\IWebComicScraper.cs" />
+    <Compile Include="Scraper\BaseWebComicScraper.cs" />
     <Compile Include="Scraper\RegExpWebComicScraper.cs" />
   </ItemGroup>
   <ItemGroup>

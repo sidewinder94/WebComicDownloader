@@ -5,6 +5,8 @@ namespace WebComicToEbook.Configuration
 {
     public class WebComicEntry
     {
+        public String Parser = "XPath";
+
         public String BaseAddress = "";
 
         public String NextButtonSelector = "";
