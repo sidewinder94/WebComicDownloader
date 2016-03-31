@@ -32,6 +32,12 @@ namespace WebComicToEbook.Scraper
         //    "Description": null
         //}
 
+        public HAPWebComicScraper(int lineCounter)
+            : base(lineCounter)
+        {
+            
+        }
+
         protected override void ScrapeWebPage(WebComicEntry entry, Document ebook, string nextPageUrl = null)
         {
             //http://htmlagilitypack.codeplex.com/wikipage?title=Examples

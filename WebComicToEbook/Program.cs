@@ -1,7 +1,9 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Xml.Linq;
 
 using WebComicToEbook.Configuration;
@@ -21,24 +23,31 @@ namespace WebComicToEbook
                 if (File.Exists(Settings.DefaultConfigFile))
                 {
                     Settings.Instance.Load();
-                    BaseWebComicScraper scraper; 
-                    foreach (var entry in Settings.Instance.Entries)
-                    {
-                        if (CaseInsensitiveComparison(entry.Parser,"XPath"))
-                        {
-                            scraper = new HAPWebComicScraper();
-                        }
-                        else if (CaseInsensitiveComparison(entry.Parser, "RegExp"))
-                        {
-                            scraper = new RegExpWebComicScraper();
-                        }
-                        else
-                        {
-                            Console.WriteLine($"Unknown scraper type for entry {entry.Title} - {entry.BaseAddress}");
-                            continue;
-                        }
-                        scraper.StartScraping(entry);
-                    }
+                    BaseWebComicScraper scraper;
+                    int counter = 0;
+                    Settings.Instance.Entries.AsParallel().ForAll(
+                        entry =>
+                            {
+
+                                var lineCounter = counter;
+                                Interlocked.Increment(ref counter);
+                                if (CaseInsensitiveComparison(entry.Parser, "XPath"))
+                                {
+                                    scraper = new HAPWebComicScraper(lineCounter);
+                                }
+                                else if (CaseInsensitiveComparison(entry.Parser, "RegExp"))
+                                {
+                                    scraper = new RegExpWebComicScraper(lineCounter);
+                                }
+                                else
+                                {
+                                    Console.WriteLine(
+                                        $"Unknown scraper type for entry {entry.Title} - {entry.BaseAddress}");
+                                    return;
+                                }
+                                scraper.StartScraping(entry);
+                                
+                            });
                     Settings.Instance.Save();
                 }
                 else

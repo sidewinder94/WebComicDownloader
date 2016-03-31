@@ -21,6 +21,12 @@ namespace WebComicToEbook.Scraper
 
         protected string _pageTemplate = Resources.page.AsString();
 
+        private int lineNumber;
+
+        protected BaseWebComicScraper(int lineNumber = 0)
+        {
+            this.lineNumber = lineNumber;
+        }
 
         public void StartScraping(WebComicEntry entry)
         {
@@ -48,7 +54,7 @@ namespace WebComicToEbook.Scraper
             String pageName = $"page{this._pageCounter}.xhtml";
             ebook.AddXhtmlData(pageName, page);
             ebook.AddNavPoint(title.IsEmpty() ? $"Chapter {this._pageCounter}" : title, pageName, this._navCounter++);
-            Console.SetCursorPosition(0, Console.CursorTop);
+            Console.SetCursorPosition(0, this.lineNumber);
             Console.Write($"Completed Page {this._pageCounter}");
             this._pageCounter++;
         }
