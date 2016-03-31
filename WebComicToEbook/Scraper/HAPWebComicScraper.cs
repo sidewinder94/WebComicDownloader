@@ -40,11 +40,23 @@ namespace WebComicToEbook.Scraper
             String title = "";
             using (var wc = new WebClient())
             {
+                try
+                {
+
+                
                 using (var ms = new MemoryStream(wc.DownloadData(nextPageUrl ?? entry.BaseAddress)))
                 {
                     hDoc.Load(ms, true);
                     XPathNavigator xNav = hDoc.CreateNavigator();
-                    title = xNav.SelectSingleNode(entry.ChapterTitleSelector).Value;
+                    try
+                    {
+                        title = xNav.SelectSingleNode(entry.ChapterTitleSelector).Value;
+                    }
+                    catch
+                    {
+                        Console.WriteLine($"Title not found for page {_pageCounter}, replacing with default value");
+                        title = WebUtility.HtmlEncode($"Chapter - {_pageCounter}");
+                    }
                     content += $"<h1>{title}</h1>";
                     XPathNodeIterator xIter= xNav.Select(entry.ChapterContentSelector);
                     while (xIter.MoveNext())
@@ -53,6 +65,19 @@ namespace WebComicToEbook.Scraper
                         content += temp;
                     }
                     nextPageUrl = xNav.SelectSingleNode(entry.NextButtonSelector).Value;
+                }
+                    }
+                catch(WebException ex) 
+                {
+                    if (((HttpWebResponse)ex.Response).StatusCode == HttpStatusCode.NotFound)
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        ScrapeWebPage(entry, ebook, nextPageUrl);
+                    }
+
                 }
             }
 

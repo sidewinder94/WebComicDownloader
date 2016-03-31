@@ -30,7 +30,6 @@ namespace WebComicToEbook
                         }
                         else if (CaseInsensitiveComparison(entry.Parser, "RegExp"))
                         {
-                            continue;
                             scraper = new RegExpWebComicScraper();
                         }
                         else
