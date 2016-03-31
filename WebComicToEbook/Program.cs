@@ -20,7 +20,7 @@ namespace WebComicToEbook
                 if (File.Exists(Settings.DefaultConfigFile))
                 {
                     Settings.Instance.Load();
-                    var scraper = new WebComicScraper();
+                    var scraper = new RegExpWebComicScraper();
                     scraper.StartScraping(Settings.Instance.Entries[0]);
                     Settings.Instance.Save();
                 }
