@@ -64,7 +64,7 @@ namespace WebComicToEbook.Scraper
                         var temp = $"<{xIter.Current.Name}>{xIter.Current.Value}</{xIter.Current.Name}>";
                         content += temp;
                     }
-                    nextPageUrl = xNav.SelectSingleNode(entry.NextButtonSelector).Value;
+                    nextPageUrl = xNav.SelectSingleNode(entry.NextButtonSelector)?.Value;
                 }
                     }
                 catch(WebException ex) 
@@ -84,7 +84,10 @@ namespace WebComicToEbook.Scraper
             AddPage(ebook, content, title);
 
 
-            Unless(nextPageUrl.IsEmpty(), () => ScrapeWebPage(entry, ebook, nextPageUrl));
+            if(!nextPageUrl.IsEmpty())
+            {
+                ScrapeWebPage(entry, ebook, nextPageUrl);
+            }
         }
     }
 }

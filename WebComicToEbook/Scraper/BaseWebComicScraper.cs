@@ -56,7 +56,7 @@ namespace WebComicToEbook.Scraper
         private string DetectBestName(string baseName, int iter = 0)
         {
             String suffix = iter == 0 ? "" : $" ({iter})";
-            String path = $"{baseName}{iter}.epub";
+            String path = $"{baseName}{suffix}.epub";
             if (File.Exists(path))
             {
                 if (Settings.Instance.Overwrite)
