@@ -17,7 +17,18 @@ namespace WebComicToEbook.Scraper
 {
     public class RegExpWebComicScraper : BaseWebComicScraper
     {
-        
+        //Example Valid JSON configuration for the class
+        //       {
+        //    "Parser": "RegExp",
+        //    "BaseAddress": "http://beyondtheimpossible.org/comic/1-before-the-beginning-2/",
+        //    "NextButtonSelector": "(?:href=\"(\\S+)\")? class=\"comic-nav-base comic-nav-next\">",
+        //    "ChapterTitleSelector": "class=\"post-title\">([^<]*)<",
+        //    "ChapterContentSelector": "<div class=\"entry\">((?:.|\n)*)<div class=\"post-extras\">",
+        //    "Author": "Ffurla",
+        //    "Date": "2016-03-18T13:24:36.2855417+01:00",
+        //    "Title": "Beyond the Impossible",
+        //    "Description": null
+        //},
 
         protected override void ScrapeWebPage(WebComicEntry entry, EPubDocument ebook, string nextPageUrl = null)
         {
