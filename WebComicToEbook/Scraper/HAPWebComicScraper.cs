@@ -56,7 +56,7 @@ namespace WebComicToEbook.Scraper
                     }
                     catch
                     {
-                        ConsoleDisplay.AddMessageDisplay(entry, $"Title not found for page {_pageCounter}, replacing with default value");
+                        ConsoleDisplay.AddAdditionalMessageDisplay(entry, $"Title not found for page {_pageCounter}, replacing with default value");
                         title = WebUtility.HtmlEncode($"Chapter - {_pageCounter}");
                     }
                     content += $"<h1>{title}</h1>";

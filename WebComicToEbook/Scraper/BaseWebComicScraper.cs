@@ -34,7 +34,7 @@ namespace WebComicToEbook.Scraper
             ScrapeWebPage(this._entry, ebook);
             String outputName = DetectBestName(this._entry.Title);
             ebook.Generate(outputName);
-            ConsoleDisplay.AppendLine($"[{this._entry}] : Finished Compiling book");
+            ConsoleDisplay.MainMessage(entry, "Finished Compiling book");
         }
 
         private void SetMetadata(EPubDocument document)
@@ -53,7 +53,7 @@ namespace WebComicToEbook.Scraper
             ebook.AddXhtmlData(pageName, page);
             ebook.AddNavPoint(title.IsEmpty() ? $"Chapter {this._pageCounter}" : title, pageName, this._navCounter++);
 
-            ConsoleDisplay.AddMessageDisplay(this._entry, $"Completed Page {this._pageCounter}");
+            ConsoleDisplay.MainMessage(this._entry, $"Completed Page {this._pageCounter}");
             this._pageCounter++;
         }
 
