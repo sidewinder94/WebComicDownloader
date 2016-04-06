@@ -12,6 +12,8 @@ using HtmlAgilityPack;
 
 using Utils.Text;
 
+using WebComicToEbook.Utils;
+
 using static Utils.Misc.Misc;
 using EPubDocument = Epub.Document;
 
@@ -31,12 +33,6 @@ namespace WebComicToEbook.Scraper
         //    "Title": "Beyond the Impossible",
         //    "Description": null
         //}
-
-        public HAPWebComicScraper(int lineCounter)
-            : base(lineCounter)
-        {
-            
-        }
 
         protected override void ScrapeWebPage(WebComicEntry entry, Document ebook, string nextPageUrl = null)
         {
@@ -60,7 +56,7 @@ namespace WebComicToEbook.Scraper
                     }
                     catch
                     {
-                        Console.WriteLine($"Title not found for page {_pageCounter}, replacing with default value");
+                        ConsoleDisplay.AddMessageDisplay(entry, $"Title not found for page {_pageCounter}, replacing with default value");
                         title = WebUtility.HtmlEncode($"Chapter - {_pageCounter}");
                     }
                     content += $"<h1>{title}</h1>";

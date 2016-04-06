@@ -30,11 +30,6 @@ namespace WebComicToEbook.Scraper
         //    "Description": null
         //},
 
-        public RegExpWebComicScraper(int lineCounter)
-            : base(lineCounter)
-        {
-            
-        }
 
         protected override void ScrapeWebPage(WebComicEntry entry, EPubDocument ebook, string nextPageUrl = null)
         {

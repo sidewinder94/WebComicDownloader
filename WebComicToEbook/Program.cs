@@ -9,6 +9,8 @@ using System.Xml.Linq;
 using WebComicToEbook.Configuration;
 using WebComicToEbook.Properties;
 using WebComicToEbook.Scraper;
+using WebComicToEbook.Utils;
+
 using static Utils.Text.Comparison;
 
 
@@ -16,6 +18,8 @@ namespace WebComicToEbook
 {
     class Program
     {
+        private static ConsoleDisplay _display = new ConsoleDisplay();
+
         static void Main(string[] args)
         {
             if (args.Length == 0)
@@ -24,24 +28,21 @@ namespace WebComicToEbook
                 {
                     Settings.Instance.Load();
                     BaseWebComicScraper scraper;
-                    int counter = 0;
                     Settings.Instance.Entries.AsParallel().ForAll(
                         entry =>
                             {
 
-                                var lineCounter = counter;
-                                Interlocked.Increment(ref counter);
                                 if (CaseInsensitiveComparison(entry.Parser, "XPath"))
                                 {
-                                    scraper = new HAPWebComicScraper(lineCounter);
+                                    scraper = new HAPWebComicScraper();
                                 }
                                 else if (CaseInsensitiveComparison(entry.Parser, "RegExp"))
                                 {
-                                    scraper = new RegExpWebComicScraper(lineCounter);
+                                    scraper = new RegExpWebComicScraper();
                                 }
                                 else
                                 {
-                                    Console.WriteLine(
+                                    ConsoleDisplay.AppendLine(
                                         $"Unknown scraper type for entry {entry.Title} - {entry.BaseAddress}");
                                     return;
                                 }
@@ -52,6 +53,7 @@ namespace WebComicToEbook
                 }
                 else
                 {
+                    _display.Halted = true;
                     Console.WriteLine("No parameters given and no config file found ! Creating one now...");
                     Settings.Instance.Entries.Add(new WebComicEntry());
                     Settings.Instance.Save();

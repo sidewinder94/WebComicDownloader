@@ -64,6 +64,7 @@
     <Compile Include="Scraper\HAPWebComicScraper.cs" />
     <Compile Include="Scraper\BaseWebComicScraper.cs" />
     <Compile Include="Scraper\RegExpWebComicScraper.cs" />
+    <Compile Include="Utils\ConsoleDisplay.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

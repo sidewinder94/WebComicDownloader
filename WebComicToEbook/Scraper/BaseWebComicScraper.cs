@@ -9,6 +9,8 @@ using Utils.Text;
 using WebComicToEbook.Configuration;
 using WebComicToEbook.EmbeddedResources;
 using WebComicToEbook.Properties;
+using WebComicToEbook.Utils;
+
 using EPubDocument = Epub.Document;
 
 namespace WebComicToEbook.Scraper
@@ -21,29 +23,25 @@ namespace WebComicToEbook.Scraper
 
         protected string _pageTemplate = Resources.page.AsString();
 
-        private int lineNumber;
-
-        protected BaseWebComicScraper(int lineNumber = 0)
-        {
-            this.lineNumber = lineNumber;
-        }
+        private WebComicEntry _entry;
 
         public void StartScraping(WebComicEntry entry)
         {
+            this._entry = entry;
             var ebook = new Document();
             ebook.AddStylesheetData("style.css", Resources.style);
-            SetMetadata(entry, ebook);
-            ScrapeWebPage(entry, ebook);
-            String outputName = DetectBestName(entry.Title);
+            SetMetadata(ebook);
+            ScrapeWebPage(this._entry, ebook);
+            String outputName = DetectBestName(this._entry.Title);
             ebook.Generate(outputName);
-            Console.WriteLine($"\nFinished Compiling book {entry.Title}");
+            ConsoleDisplay.AppendLine($"[{this._entry}] : Finished Compiling book");
         }
 
-        private void SetMetadata(WebComicEntry entry, EPubDocument document)
+        private void SetMetadata(EPubDocument document)
         {
-            document.AddAuthor(entry.Author);
-            document.AddDescription(entry.Description);
-            document.AddTitle(entry.Title);
+            document.AddAuthor(this._entry.Author);
+            document.AddDescription(this._entry.Description);
+            document.AddTitle(this._entry.Title);
         }
 
         protected void AddPage(EPubDocument ebook, string content, string title)
@@ -54,8 +52,8 @@ namespace WebComicToEbook.Scraper
             String pageName = $"page{this._pageCounter}.xhtml";
             ebook.AddXhtmlData(pageName, page);
             ebook.AddNavPoint(title.IsEmpty() ? $"Chapter {this._pageCounter}" : title, pageName, this._navCounter++);
-            Console.SetCursorPosition(0, this.lineNumber);
-            Console.Write($"Completed Page {this._pageCounter}");
+
+            ConsoleDisplay.AddMessageDisplay(this._entry, $"Completed Page {this._pageCounter}");
             this._pageCounter++;
         }
 
