@@ -107,7 +107,7 @@ namespace WebComicToEbook.Utils
                 {
                     string additionalText = string.Empty;
 
-                    if (AdditionalMessageDisplay.ContainsKey(entry))
+                    if (AdditionalMessageDisplay.ContainsKey(entry) && AdditionalMessageDisplay[entry].Count > 0)
                     {
                         additionalText = $" - {AdditionalMessageDisplay[entry].Dequeue()}";
                         if (AdditionalMessageDisplay[entry].Count > 0)
