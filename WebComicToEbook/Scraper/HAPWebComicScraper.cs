@@ -36,9 +36,9 @@ namespace WebComicToEbook.Scraper
         {
             // http://htmlagilitypack.codeplex.com/wikipage?title=Examples
             string content = string.Empty;
-            string title;
             do
             {
+                string title;
                 try
                 {
                     using (var wc = new WebClient())
