@@ -36,62 +36,57 @@ namespace WebComicToEbook.Scraper
         {
             // http://htmlagilitypack.codeplex.com/wikipage?title=Examples
             string content = string.Empty;
-            string title = string.Empty;
-
-            try
+            string title;
+            do
             {
-                using (var wc = new WebClient())
+                try
                 {
-                    using (var ms = new MemoryStream(wc.DownloadData(nextPageUrl ?? entry.BaseAddress)))
+                    using (var wc = new WebClient())
                     {
-                        HtmlDocument hDoc = new HtmlDocument();
-                        hDoc.Load(ms, true);
-                        XPathNavigator xNav = hDoc.CreateNavigator();
-                        try
+                        using (var ms = new MemoryStream(wc.DownloadData(nextPageUrl ?? entry.BaseAddress)))
                         {
-                            title = xNav.SelectSingleNode(entry.ChapterTitleSelector).Value;
-                        }
-                        catch
-                        {
-                            ConsoleDisplay.AddAdditionalMessageDisplay(
-                                entry, 
-                                $"Title not found for page {_pageCounter}, replacing with default value");
-                            title = WebUtility.HtmlEncode($"Chapter - {_pageCounter}");
-                        }
+                            HtmlDocument hDoc = new HtmlDocument();
+                            hDoc.Load(ms, true);
+                            XPathNavigator xNav = hDoc.CreateNavigator();
+                            try
+                            {
+                                title = xNav.SelectSingleNode(entry.ChapterTitleSelector).Value;
+                            }
+                            catch
+                            {
+                                ConsoleDisplay.AddAdditionalMessageDisplay(
+                                    entry, 
+                                    $"Title not found for page {_pageCounter}, replacing with default value");
+                                title = WebUtility.HtmlEncode($"Chapter - {_pageCounter}");
+                            }
 
-                        content += $"<h1>{title}</h1>";
-                        XPathNodeIterator xIter = xNav.Select(entry.ChapterContentSelector);
-                        while (xIter.MoveNext())
-                        {
-                            var temp = $"<{xIter.Current.Name}>{xIter.Current.Value}</{xIter.Current.Name}>";
-                            content += temp;
-                        }
+                            content += $"<h1>{title}</h1>";
+                            XPathNodeIterator xIter = xNav.Select(entry.ChapterContentSelector);
+                            while (xIter.MoveNext())
+                            {
+                                var temp = $"<{xIter.Current.Name}>{xIter.Current.Value}</{xIter.Current.Name}>";
+                                content += temp;
+                            }
 
-                        nextPageUrl = xNav.SelectSingleNode(entry.NextButtonSelector)?.Value;
-                        hDoc = null;
-                        xNav = null;
-                        xIter = null;
+                            nextPageUrl = xNav.SelectSingleNode(entry.NextButtonSelector)?.Value;
+                        }
                     }
                 }
-            }
-            catch (WebException ex)
-            {
-                if (((HttpWebResponse)ex.Response).StatusCode == HttpStatusCode.NotFound)
+                catch (WebException ex)
                 {
-                    return;
+                    if (((HttpWebResponse)ex.Response).StatusCode == HttpStatusCode.NotFound)
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        continue;
+                    }
                 }
-                else
-                {
-                    ScrapeWebPage(entry, ebook, nextPageUrl);
-                }
-            }
 
-            AddPage(ebook, content, title);
-
-            if (!nextPageUrl.IsEmpty())
-            {
-                ScrapeWebPage(entry, ebook, nextPageUrl);
+                AddPage(ebook, content, title);
             }
+            while (!nextPageUrl.IsEmpty());
         }
     }
 }
