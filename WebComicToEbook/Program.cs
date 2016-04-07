@@ -10,7 +10,8 @@ using WebComicToEbook.Configuration;
 using WebComicToEbook.Properties;
 using WebComicToEbook.Scraper;
 using WebComicToEbook.Utils;
-
+using CommandLine;
+using CommandLine.Text;
 using static Utils.Text.Comparison;
 
 
@@ -27,7 +28,23 @@ namespace WebComicToEbook
                 if (File.Exists(Settings.DefaultConfigFile))
                 {
                     Settings.Instance.Load();
-                    BaseWebComicScraper scraper;
+                }
+                else
+                {
+                    _display.Halted = true;
+                    Console.WriteLine("No parameters given and no config file found ! Creating one now...");
+                    Settings.Instance.Entries.Add(new WebComicEntry());
+                    Settings.Instance.Save();
+                    PrintUsage();
+                    return;
+                }
+            }
+            else
+            {
+                ProcessArgs(args);
+            }
+
+            BaseWebComicScraper scraper;
                     Settings.Instance.Entries.AsParallel().ForAll(
                         entry =>
                             {
@@ -49,23 +66,13 @@ namespace WebComicToEbook
                                 scraper.StartScraping(entry);
                                 
                             });
-                    Settings.Instance.Save();
-                }
-                else
-                {
-                    _display.Halted = true;
-                    Console.WriteLine("No parameters given and no config file found ! Creating one now...");
-                    Settings.Instance.Entries.Add(new WebComicEntry());
-                    Settings.Instance.Save();
-                    PrintUsage();
-                    return;
-                }
-            }
-
 
 
         }
 
+        private static void ProcessArgs(string[] args)
+        {
+        }
 
         static void PrintUsage()
         {
