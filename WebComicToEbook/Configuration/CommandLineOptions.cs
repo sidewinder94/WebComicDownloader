@@ -16,13 +16,8 @@ namespace WebComicToEbook.Configuration
         [HelpOption]
         public string GetUsage()
         {
-            var help = new HelpText()
-            {
-                AdditionalNewLineAfterOption = true,
-                AddDashesToOption = true
-            };
-            help.AddOptions(this);
-            return help;
+            return HelpText.AutoBuild(this,
+    (HelpText current) => HelpText.DefaultParsingErrorsHandler(this, current));
         }
     }
 }
