@@ -35,9 +35,10 @@ namespace WebComicToEbook.Scraper
         protected override void ScrapeWebPage(WebComicEntry entry, Document ebook, string nextPageUrl = null)
         {
             // http://htmlagilitypack.codeplex.com/wikipage?title=Examples
-            string content = string.Empty;
+
             do
             {
+                string content = string.Empty;
                 string title;
                 try
                 {
@@ -55,7 +56,7 @@ namespace WebComicToEbook.Scraper
                             catch
                             {
                                 ConsoleDisplay.AddAdditionalMessageDisplay(
-                                    entry, 
+                                    entry,
                                     $"Title not found for page {_pageCounter}, replacing with default value");
                                 title = WebUtility.HtmlEncode($"Chapter - {_pageCounter}");
                             }

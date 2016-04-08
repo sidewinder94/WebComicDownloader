@@ -66,6 +66,7 @@ namespace WebComicToEbook.Scraper
                 if (Settings.Instance.CommandLineOptions.Overwrite)
                 {
                     File.Delete(path);
+                    return path;
                 }
                 return DetectBestName(baseName, ++iter);
             }
