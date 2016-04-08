@@ -63,7 +63,7 @@ namespace WebComicToEbook.Scraper
             String path = $"{baseName}{suffix}.epub";
             if (File.Exists(path))
             {
-                if (Settings.Instance.Overwrite)
+                if (Settings.Instance.CommandLineOptions.Overwrite)
                 {
                     File.Delete(path);
                 }

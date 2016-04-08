@@ -23,61 +23,44 @@ namespace WebComicToEbook
 
         static void Main(string[] args)
         {
-            if (args.Length == 0)
+            if (Parser.Default.ParseArguments(args, Settings.Instance.CommandLineOptions))
             {
-                if (File.Exists(Settings.DefaultConfigFile))
+                if (File.Exists(Settings.Instance.CommandLineOptions.ConfigFilePath ?? Settings.DefaultConfigFile))
                 {
                     Settings.Instance.Load();
-                }
-                else
-                {
-                    _display.Halted = true;
-                    Console.WriteLine("No parameters given and no config file found ! Creating one now...");
-                    Settings.Instance.Entries.Add(new WebComicEntry());
-                    Settings.Instance.Save();
-                    PrintUsage();
-                    return;
+
+                    BaseWebComicScraper scraper;
+                    Settings.Instance.Entries.AsParallel().ForAll(
+                        entry =>
+                        {
+
+                            if (CaseInsensitiveComparison(entry.Parser, "XPath"))
+                            {
+                                scraper = new HAPWebComicScraper();
+                            }
+                            else if (CaseInsensitiveComparison(entry.Parser, "RegExp"))
+                            {
+                                scraper = new RegExpWebComicScraper();
+                            }
+                            else
+                            {
+                                ConsoleDisplay.AppendLine(
+                                    $"Unknown scraper type for entry {entry.Title} - {entry.BaseAddress}");
+                                return;
+                            }
+                            scraper.StartScraping(entry);
+
+                        });
                 }
             }
             else
             {
-                ProcessArgs(args);
+                _display.Halted = true;
+                Console.WriteLine("No parameters given and no config file found ! Creating one now...");
+                Settings.Instance.Entries.Add(new WebComicEntry());
+                Settings.Instance.Save();
+                return;
             }
-
-            BaseWebComicScraper scraper;
-                    Settings.Instance.Entries.AsParallel().ForAll(
-                        entry =>
-                            {
-
-                                if (CaseInsensitiveComparison(entry.Parser, "XPath"))
-                                {
-                                    scraper = new HAPWebComicScraper();
-                                }
-                                else if (CaseInsensitiveComparison(entry.Parser, "RegExp"))
-                                {
-                                    scraper = new RegExpWebComicScraper();
-                                }
-                                else
-                                {
-                                    ConsoleDisplay.AppendLine(
-                                        $"Unknown scraper type for entry {entry.Title} - {entry.BaseAddress}");
-                                    return;
-                                }
-                                scraper.StartScraping(entry);
-                                
-                            });
-
-
-        }
-
-        private static void ProcessArgs(string[] args)
-        {
-        }
-
-        static void PrintUsage()
-        {
-            var sb = new StringBuilder();
-            sb.AppendLine("Usage : ");
         }
     }
 }

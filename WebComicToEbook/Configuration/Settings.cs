@@ -10,15 +10,16 @@ namespace WebComicToEbook.Configuration
 
         public static Settings Instance => Holder.settings;
 
-        public bool Overwrite = false;
-
         private Settings()
         {
             this.Entries = new List<WebComicEntry>();
+            this.CommandLineOptions = new CommandLineOptions();
         }
 
         public List<WebComicEntry> Entries;
 
+        [JsonIgnore]
+        public CommandLineOptions CommandLineOptions;
 
         public void Load(string configFilePath = DefaultConfigFile)
         {
