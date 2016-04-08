@@ -79,10 +79,7 @@ namespace WebComicToEbook.Scraper
                     {
                         return;
                     }
-                    else
-                    {
                         continue;
-                    }
                 }
 
                 AddPage(ebook, content, title);
