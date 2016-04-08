@@ -3,14 +3,23 @@ A little Console Utility to download blog based webcomics
 
 It's only in beta stage, since there are some little issues left.
 
+##Master Branch Build Status
+[![Build status](https://ci.appveyor.com/api/projects/status/lsuvijvevir2rk88/branch/master?svg=true)](https://ci.appveyor.com/project/sidewinder94/webcomicdownloader/branch/master)
+
 ##Known Issues
 - When using the RegExp scraper, the encoding might get screwed.
 - When using the XPath scraper, the inner xml of the selected elements will not get saved (thus losing the style).
-- Display screwed when scapring more than one webcomic at once
 - All of the exceptions are not properly handled yet, the program migth thus end unexpectedly
+- ~~Display screwed when scapring more than one webcomic at once~~
+- ~~unexpectedly hig memory consumption~~
+
 
 ##Usage
-As of now there are no supported command line switches.
+As of now there are **two** : 
+- -i or --input : allows to specify a custom configuration file, if it does not exists, it will be created with an empty entry at this path
+- -o or --overwrite : if this flag is set, instead of renaming new ebooks with the name of existing files, will delete the old files before saving the new ones.
+
+
 The program will try to read a config.json file in the running directory.
 If none are found, an empty one will be created
 An example of such a configuration file would be :
