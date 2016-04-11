@@ -33,7 +33,6 @@ namespace WebComicToEbook.Scraper
 
         protected override void ScrapeWebPage(WebComicEntry entry, EPubDocument ebook, string nextPageUrl = null)
         {
-            String nextUrl = "";
             do
             {
                 String title = "";
@@ -50,7 +49,11 @@ namespace WebComicToEbook.Scraper
                         var m = Regex.Match(s, entry.NextButtonSelector);
                         if (m.Groups[1].Success)
                         {
-                            nextUrl = m.Groups[1].Value;
+                            nextPageUrl = m.Groups[1].Value;
+                        }
+                        else
+                        {
+                            nextPageUrl = String.Empty;
                         }
                         m = Regex.Match(s, entry.ChapterTitleSelector);
                         if (m.Groups[1].Success)
@@ -77,7 +80,7 @@ namespace WebComicToEbook.Scraper
                     }
                     continue;
                 }
-            } while (!nextUrl.IsEmpty());
+            } while (!nextPageUrl.IsEmpty());
         }
     }
 }
