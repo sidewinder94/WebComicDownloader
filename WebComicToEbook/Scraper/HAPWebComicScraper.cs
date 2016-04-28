@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Net;
 using System.Xml.XPath;
@@ -49,6 +51,7 @@ namespace WebComicToEbook.Scraper
                             HtmlDocument hDoc = new HtmlDocument();
                             hDoc.Load(ms, true);
                             XPathNavigator xNav = hDoc.CreateNavigator();
+
                             try
                             {
                                 title = xNav.SelectSingleNode(entry.ChapterTitleSelector).Value;
@@ -61,14 +64,25 @@ namespace WebComicToEbook.Scraper
                                 title = WebUtility.HtmlEncode($"Chapter - {_pageCounter}");
                             }
 
-                            content += $"<h1>{title}</h1>";
                             XPathNodeIterator xIter = xNav.Select(entry.ChapterContentSelector);
-                            while (xIter.MoveNext())
-                            {
-                                var temp = $"<{xIter.Current.Name}>{xIter.Current.Value}</{xIter.Current.Name}>";
-                                content += temp;
-                            }
 
+                            if (entry.Content == WebComicEntry.ContentType.Text)
+                            {
+                                content += $"<h1>{title}</h1>";
+
+                                while (xIter.MoveNext())
+                                {
+                                    var temp = $"<{xIter.Current.Name}>{xIter.Current.Value}</{xIter.Current.Name}>";
+                                    content += temp;
+                                }
+                            }
+                            else if (entry.Content == WebComicEntry.ContentType.Image)
+                            {
+                                while (xIter.MoveNext())
+                                {
+                                    AddImage(ebook, wc, xIter.Current.Value);
+                                }
+                            }
                             nextPageUrl = xNav.SelectSingleNode(entry.NextButtonSelector)?.Value;
                         }
                     }
@@ -79,10 +93,13 @@ namespace WebComicToEbook.Scraper
                     {
                         return;
                     }
-                        continue;
+                    continue;
                 }
 
-                AddPage(ebook, content, title);
+                if (entry.Content == WebComicEntry.ContentType.Text)
+                {
+                    AddPage(ebook, content, title);
+                }
             }
             while (!nextPageUrl.IsEmpty());
         }

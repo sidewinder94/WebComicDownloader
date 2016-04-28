@@ -1,4 +1,26 @@
 [
+    {
+    "Parser": "XPath",
+    "Content": "Image", 
+    "BaseAddress": "http://m.mangafox.me/manga/magika_no_kenshi_to_shoukan_maou/c001/001.html",
+    "NextButtonSelector": "//a[img/@id='image']/@href",
+    "ChapterContentSelector": "//@src[@id='image']",
+    "Author": "",
+    "Date": "2016-03-18T13:24:36.2855417+01:00",
+    "Title": "Magika no Kenshi to Shoukan Maou",
+    "Description": ""
+  },
+  {
+    "Parser": "XPath",
+    "BaseAddress": "http://www.wuxiaworld.com/sfl-index/skyfire-lane-chapter-1/",
+    "NextButtonSelector": "//@href[contains(text(),'Next Chapter')]",
+    "ChapterTitleSelector": "//article//strong",
+    "ChapterContentSelector": "//*[@class='entry-content']//p[position() > 2 and position() < last()]",
+    "Author": "Tang Jia San Shao",
+    "Date": "2016-03-18T13:24:36.2855417+01:00",
+    "Title": "Skyfire Avenue",
+    "Description": ""
+  },
   {
     "Parser": "XPath",
     "BaseAddress": "http://www.wuxiaworld.com/mga-index/mga-chapter-1/",
@@ -31,5 +53,5 @@
     "Date": "2016-03-18T13:24:36.2855417+01:00",
     "Title": "Beyond the Impossible",
     "Description": null
-    }
+  }
 ]
