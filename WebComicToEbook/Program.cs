@@ -34,11 +34,11 @@ namespace WebComicToEbook
                         entry =>
                         {
 
-                            if (CaseInsensitiveComparison(entry.Parser, "XPath"))
+                            if (entry.Parser == WebComicEntry.Parsers.XPath)
                             {
                                 scraper = new HAPWebComicScraper();
                             }
-                            else if (CaseInsensitiveComparison(entry.Parser, "RegExp"))
+                            else if (entry.Parser == WebComicEntry.Parsers.RegExp)
                             {
                                 scraper = new RegExpWebComicScraper();
                             }
