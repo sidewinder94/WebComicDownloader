@@ -106,6 +106,7 @@ namespace WebComicToEbook.Scraper
             ebook.AddNavPoint(title.IsEmpty() ? $"Page {this._pageCounter}" : title, pageName, this._navCounter++);
             ConsoleDisplay.MainMessage(this._entry, $"Completed Page {this._pageCounter}");
             this._pageCounter++;
+            this._imageCounter++;
         }
 
         private string DetectBestName(string baseName, out bool existing, int iter = 0)
