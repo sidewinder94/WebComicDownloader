@@ -42,11 +42,12 @@ namespace WebComicToEbook.Scraper
             {
                 string content = string.Empty;
                 string title;
+                var currentUrl = nextPageUrl ?? entry.BaseAddress;
                 try
                 {
                     using (var wc = new WebClient())
                     {
-                        using (var ms = new MemoryStream(wc.DownloadData(nextPageUrl ?? entry.BaseAddress)))
+                        using (var ms = new MemoryStream(wc.DownloadData(currentUrl)))
                         {
                             HtmlDocument hDoc = new HtmlDocument();
                             hDoc.Load(ms, true);
@@ -80,7 +81,7 @@ namespace WebComicToEbook.Scraper
                             {
                                 while (xIter.MoveNext())
                                 {
-                                    AddImage(ebook, wc, xIter.Current.Value);
+                                    AddImage(ebook, wc, xIter.Current.Value, currentUrl);
                                 }
                             }
                             nextPageUrl = xNav.SelectSingleNode(entry.NextButtonSelector)?.Value;
@@ -98,7 +99,7 @@ namespace WebComicToEbook.Scraper
 
                 if (entry.Content == WebComicEntry.ContentType.Text)
                 {
-                    AddPage(ebook, content, title);
+                    AddPage(ebook, content, title, currentUrl);
                 }
             }
             while (!nextPageUrl.IsEmpty());

@@ -1,13 +1,19 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Configuration;
+using System.Text;
 using System.Threading.Tasks;
 using Epub;
 
+using Newtonsoft.Json;
+
 using Utils.Text;
+using static Utils.Misc.Misc;
 
 using WebComicToEbook.Configuration;
 using WebComicToEbook.EmbeddedResources;
@@ -30,6 +36,21 @@ namespace WebComicToEbook.Scraper
 
         private WebComicEntry _entry;
 
+        protected List<Page> Pages = new List<Page>();
+
+        private string _workingDirPath;
+
+        ~BaseWebComicScraper()
+        {
+            Unless(Settings.Instance.CommandLineOptions.SaveProgressFolder.IsEmpty(),
+                () =>
+                    {
+                        File.WriteAllText(
+                            Path.Combine(this._workingDirPath, "Pages.json"),
+                            JsonConvert.SerializeObject(this.Pages));
+                    });
+        }
+
         public void StartScraping(WebComicEntry entry)
         {
 
@@ -37,6 +58,27 @@ namespace WebComicToEbook.Scraper
             var ebook = new Document();
             bool existing = false;
             String outputName = DetectBestName(this._entry.Title, out existing);
+
+            this._workingDirPath = Path.Combine(Settings.Instance.CommandLineOptions.SaveProgressFolder, entry.Title);
+
+            if (!Settings.Instance.CommandLineOptions.SaveProgressFolder.IsEmpty() &&
+                !Directory.Exists(this._workingDirPath))
+            {
+                Directory.CreateDirectory(
+                    Path.Combine(this._workingDirPath));
+            }
+
+            if (!File.Exists(Path.Combine(this._workingDirPath, "Pages.json")))
+            {
+                var temp =
+                    JsonConvert.DeserializeObject<List<Page>>(
+                        File.ReadAllText(Path.Combine(this._workingDirPath, "Pages.json")));
+                if (temp.Any())
+                {
+                    this.Pages = temp;
+                }
+            }
+
             if (!existing || Settings.Instance.CommandLineOptions.Redownload)
             {
                 ebook.AddStylesheetData("style.css", Resources.style);
@@ -58,7 +100,7 @@ namespace WebComicToEbook.Scraper
             document.AddTitle(this._entry.Title);
         }
 
-        protected void AddPage(EPubDocument ebook, string content, string title)
+        protected void AddPage(EPubDocument ebook, string content, string title, string currentUrl)
         {
             String page = this._pageTemplate.Replace("%%TITLE%%", title).Replace("%%CONTENT%%", content);
 
@@ -69,17 +111,38 @@ namespace WebComicToEbook.Scraper
 
             ConsoleDisplay.MainMessage(this._entry, $"Completed Page {this._pageCounter}");
             this._pageCounter++;
+
+            Unless(Settings.Instance.CommandLineOptions.SaveProgressFolder.IsEmpty(),
+                () =>
+                    {
+                        var pagesDir = Path.Combine(this._workingDirPath, this._entry.Title, "Pages");
+                        Unless(Directory.Exists(pagesDir), () => Directory.CreateDirectory(pagesDir));
+
+                        var pagePath = Path.Combine(pagesDir, pageName);
+
+                        this.Pages.Add(new Page()
+                        {
+                            Path = pagePath,
+                            Type = WebComicEntry.ContentType.Text,
+                            PageUrl = currentUrl
+                        });
+
+                        File.WriteAllText(pagePath, page);
+                    });
         }
 
-        protected Bitmap DownloadImage(WebClient wc, MemoryStream ms, string url)
+        protected void DownloadImage(WebClient wc, MemoryStream destinationStream, string url)
         {
             while (true)
             {
                 try
                 {
-                    ms = new MemoryStream(wc.DownloadData(url));
-                    var bm = new Bitmap(ms);
-                    return bm;
+                    using (var ms = new MemoryStream(wc.DownloadData(url)))
+                    {
+                        var bm = new Bitmap(ms);
+                        bm.Save(destinationStream, ImageFormat.Png);
+                        return;
+                    }
                 }
                 catch (WebException ex)
                 {
@@ -89,16 +152,29 @@ namespace WebComicToEbook.Scraper
             }
         }
 
-        protected void AddImage(EPubDocument ebook, WebClient wc, string url, string title = "")
+        protected void AddImage(EPubDocument ebook, WebClient wc, string url, string pageUrl, string title = "")
         {
             using (MemoryStream memImg = new MemoryStream())
             {
-                using (var ms = new MemoryStream())
-                {
-                    var img = this.DownloadImage(wc, ms, url);
-                    img.Save(memImg, ImageFormat.Png);
-                }
+                this.DownloadImage(wc, memImg, url);
                 ebook.AddImageData($"image{this._imageCounter}.png", memImg.GetBuffer());
+
+                if (!Settings.Instance.CommandLineOptions.SaveProgressFolder.IsEmpty())
+                {
+                    var pagesDir = Path.Combine(this._workingDirPath, this._entry.Title, "Images");
+                    Unless(!Directory.Exists(pagesDir), () => Directory.CreateDirectory(pagesDir));
+
+                    var pagePath = Path.Combine(pagesDir, $"image{this._imageCounter}.png");
+
+                    this.Pages.Add(new Page()
+                    {
+                        Path = pagePath,
+                        Type = WebComicEntry.ContentType.Image,
+                        PageUrl = pageUrl
+                    });
+
+                    File.WriteAllBytes(pagePath, memImg.GetBuffer());
+                }
             }
             String page = this._pageTemplate.Replace("%%TITLE%%", "").Replace("%%CONTENT%%", $"<img src=\"image{this._imageCounter}.png\" alt=\"\"/>");
             String pageName = $"page{this._pageCounter}.xhtml";

@@ -37,6 +37,7 @@ namespace WebComicToEbook.Scraper
             {
                 String title = "";
                 String content = "";
+                var currentUrl = nextPageUrl ?? entry.BaseAddress;
                 try
                 {
                     using (var wc = new WebClient()
@@ -44,7 +45,7 @@ namespace WebComicToEbook.Scraper
                         Encoding = Encoding.UTF8
                     })
                     {
-                        var s = WebUtility.HtmlDecode(wc.DownloadString(nextPageUrl ?? entry.BaseAddress));
+                        var s = WebUtility.HtmlDecode(wc.DownloadString(currentUrl));
 
                         var m = Regex.Match(s, entry.NextButtonSelector);
                         if (m.Groups[1].Success)
@@ -69,7 +70,7 @@ namespace WebComicToEbook.Scraper
                             content += v;
                         }
 
-                        this.AddPage(ebook, content, title);
+                        this.AddPage(ebook, content, title, currentUrl);
                     }
                 }
                 catch (WebException ex)

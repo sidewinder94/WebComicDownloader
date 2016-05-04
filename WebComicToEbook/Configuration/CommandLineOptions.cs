@@ -16,11 +16,15 @@ namespace WebComicToEbook.Configuration
         [Option('i', "config", DefaultValue = "config.json", HelpText = "The path to the configuration file to use")]
         public String ConfigFilePath { get; set; }
 
+        [Option(longName: "save-progress", DefaultValue = "", HelpText = "The path to save the current progress, temporary directory by default")]
+        public String SaveProgressFolder { get; set; }
+
         [HelpOption]
         public string GetUsage()
         {
-            return HelpText.AutoBuild(this,
-    (HelpText current) => HelpText.DefaultParsingErrorsHandler(this, current));
+            return HelpText.AutoBuild(
+                this,
+                current => HelpText.DefaultParsingErrorsHandler(this, current));
         }
     }
 }
