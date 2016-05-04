@@ -6,6 +6,8 @@ It's only in beta stage, since there are some little issues left.
 ##Master Branch Build Status
 [![Build status](https://ci.appveyor.com/api/projects/status/lsuvijvevir2rk88/branch/master?svg=true)](https://ci.appveyor.com/project/sidewinder94/webcomicdownloader/branch/master)
 
+Download Latest Successfull build : [https://ci.appveyor.com/api/projects/sidewinder94/webcomicdownloader/artifacts/WebComicToEbook/bin/Release.zip](https://ci.appveyor.com/api/projects/sidewinder94/webcomicdownloader/artifacts/WebComicToEbook/bin/Release.zip)
+
 ##Known Issues
 - When using the RegExp scraper, the encoding might get screwed.
 - When using the XPath scraper, the inner xml of the selected elements will not get saved (thus losing the style).
