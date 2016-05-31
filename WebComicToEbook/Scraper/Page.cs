@@ -18,8 +18,11 @@ namespace WebComicToEbook.Scraper
         [DefaultValue(ContentType.Text)]
         public ContentType Type { get; set; }
 
+        public string Title { get; set; }
+
         public string PageUrl { get; set; }
 
         public string Content { get; set; }
+        public int Order { get; set; }
     }
 }

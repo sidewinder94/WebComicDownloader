@@ -93,6 +93,39 @@ namespace WebComicToEbook.Scraper
             }
         }
 
+        private void RecoverProgress(EPubDocument ebook)
+        {
+            foreach (var page in this.Pages.OrderBy(p => p.Order))
+            {
+                switch (page.Type)
+                {
+                    case WebComicEntry.ContentType.Image:
+                        RecoverImagePage(ebook, page);
+                        break;
+                    case WebComicEntry.ContentType.Text:
+                        RecoverTextPage(ebook, page);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        private void RecoverTextPage(EPubDocument ebook, Page page)
+        {
+            String pageName = $"page{this._pageCounter}.xhtml";
+            ebook.AddXhtmlData(pageName, page.Content);
+            ebook.AddNavPoint(page.Title.IsEmpty() ? $"Chapter {this._pageCounter}" : page.Title, pageName, this._navCounter++);
+
+            ConsoleDisplay.MainMessage(this._entry, $"Completed Page {this._pageCounter}");
+            this._pageCounter++;
+        }
+
+        private void RecoverImagePage(EPubDocument ebook, Page page)
+        {
+
+        }
+
         private void SetMetadata(EPubDocument document)
         {
             document.AddAuthor(this._entry.Author);
@@ -110,7 +143,7 @@ namespace WebComicToEbook.Scraper
             ebook.AddNavPoint(title.IsEmpty() ? $"Chapter {this._pageCounter}" : title, pageName, this._navCounter++);
 
             ConsoleDisplay.MainMessage(this._entry, $"Completed Page {this._pageCounter}");
-            this._pageCounter++;
+
 
             Unless(Settings.Instance.CommandLineOptions.SaveProgressFolder.IsEmpty(),
                 () =>
@@ -122,13 +155,17 @@ namespace WebComicToEbook.Scraper
 
                         this.Pages.Add(new Page()
                         {
+                            Title = title,
                             Path = pagePath,
                             Type = WebComicEntry.ContentType.Text,
-                            PageUrl = currentUrl
+                            PageUrl = currentUrl,
+                            Order = this._pageCounter
                         });
 
                         File.WriteAllText(pagePath, page);
                     });
+
+            this._pageCounter++;
         }
 
         protected void DownloadImage(WebClient wc, MemoryStream destinationStream, string url)
@@ -168,9 +205,11 @@ namespace WebComicToEbook.Scraper
 
                     this.Pages.Add(new Page()
                     {
+                        Title = title,
                         Path = pagePath,
                         Type = WebComicEntry.ContentType.Image,
-                        PageUrl = pageUrl
+                        PageUrl = pageUrl,
+                        Order = this._pageCounter
                     });
 
                     File.WriteAllBytes(pagePath, memImg.GetBuffer());
