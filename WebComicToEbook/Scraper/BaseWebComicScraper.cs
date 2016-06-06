@@ -10,6 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Epub;
 
+using Microsoft.Win32.SafeHandles;
+
 using Newtonsoft.Json;
 
 using Utils.Text;
@@ -57,6 +59,7 @@ namespace WebComicToEbook.Scraper
             this._entry = entry;
             var ebook = new Document();
             bool existing = false;
+            string nextPageUrl = null;
             String outputName = DetectBestName(this._entry.Title, out existing);
 
             this._workingDirPath = Path.Combine(Settings.Instance.CommandLineOptions.SaveProgressFolder, entry.Title);
@@ -76,6 +79,7 @@ namespace WebComicToEbook.Scraper
                 if (temp.Any())
                 {
                     this.Pages = temp;
+                    nextPageUrl = this.RecoverProgress(ebook);
                 }
             }
 
@@ -83,7 +87,7 @@ namespace WebComicToEbook.Scraper
             {
                 ebook.AddStylesheetData("style.css", Resources.style);
                 SetMetadata(ebook);
-                ScrapeWebPage(this._entry, ebook);
+                ScrapeWebPage(this._entry, ebook, nextPageUrl);
                 ebook.Generate(outputName);
                 ConsoleDisplay.MainMessage(entry, "Finished Compiling book");
             }
@@ -93,10 +97,16 @@ namespace WebComicToEbook.Scraper
             }
         }
 
-        private void RecoverProgress(EPubDocument ebook)
+        private string RecoverProgress(EPubDocument ebook)
         {
-            foreach (var page in this.Pages.OrderBy(p => p.Order))
+            var orderedPages = this.Pages.OrderBy(p => p.Order).ToList();
+            foreach (var page in orderedPages)
             {
+                if (page == orderedPages.Last())
+                {
+                    return page.PageUrl;
+                }
+
                 switch (page.Type)
                 {
                     case WebComicEntry.ContentType.Image:
@@ -109,6 +119,8 @@ namespace WebComicToEbook.Scraper
                         break;
                 }
             }
+
+            return null;
         }
 
         private void RecoverTextPage(EPubDocument ebook, Page page)
@@ -123,7 +135,14 @@ namespace WebComicToEbook.Scraper
 
         private void RecoverImagePage(EPubDocument ebook, Page page)
         {
-
+            var imageBytes = File.ReadAllBytes(page.Path);
+            ebook.AddImageData($"image{this._imageCounter}.png", imageBytes);
+            String pageName = $"page{this._pageCounter}.xhtml";
+            ebook.AddXhtmlData(pageName, page.Content);
+            ebook.AddNavPoint(page.Title.IsEmpty() ? $"Page {this._pageCounter}" : page.Title, pageName, this._navCounter++);
+            ConsoleDisplay.MainMessage(this._entry, $"Completed Page {this._pageCounter}");
+            this._pageCounter++;
+            this._imageCounter++;
         }
 
         private void SetMetadata(EPubDocument document)
