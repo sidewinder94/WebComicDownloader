@@ -81,7 +81,8 @@ namespace WebComicToEbook.Scraper
                     }
                     continue;
                 }
-            } while (!nextPageUrl.IsEmpty());
+            }
+            while (!nextPageUrl.IsEmpty());
         }
     }
 }

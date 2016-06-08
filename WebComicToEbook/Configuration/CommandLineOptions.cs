@@ -16,7 +16,7 @@ namespace WebComicToEbook.Configuration
         [Option('i', "config", DefaultValue = "config.json", HelpText = "The path to the configuration file to use")]
         public String ConfigFilePath { get; set; }
 
-        [Option(longName: "save-progress", DefaultValue = "", HelpText = "The path to save the current progress, temporary directory by default")]
+        [Option(longName: "save-progress", DefaultValue = "", HelpText = "The path to save the current progress, temporary directory by default (won't be able to resume)")]
         public String SaveProgressFolder { get; set; }
 
         [HelpOption]

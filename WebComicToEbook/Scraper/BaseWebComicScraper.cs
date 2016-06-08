@@ -42,17 +42,6 @@ namespace WebComicToEbook.Scraper
 
         private string _workingDirPath;
 
-        ~BaseWebComicScraper()
-        {
-            Unless(Settings.Instance.CommandLineOptions.SaveProgressFolder.IsEmpty(),
-                () =>
-                    {
-                        File.WriteAllText(
-                            Path.Combine(this._workingDirPath, "Pages.json"),
-                            JsonConvert.SerializeObject(this.Pages));
-                    });
-        }
-
         public void StartScraping(WebComicEntry entry)
         {
 
@@ -71,7 +60,7 @@ namespace WebComicToEbook.Scraper
                     Path.Combine(this._workingDirPath));
             }
 
-            if (!File.Exists(Path.Combine(this._workingDirPath, "Pages.json")))
+            if (File.Exists(Path.Combine(this._workingDirPath, "Pages.json")))
             {
                 var temp =
                     JsonConvert.DeserializeObject<List<Page>>(
@@ -126,7 +115,7 @@ namespace WebComicToEbook.Scraper
         private void RecoverTextPage(EPubDocument ebook, Page page)
         {
             String pageName = $"page{this._pageCounter}.xhtml";
-            ebook.AddXhtmlData(pageName, page.Content);
+            ebook.AddXhtmlData(pageName, File.ReadAllText(page.Path));
             ebook.AddNavPoint(page.Title.IsEmpty() ? $"Chapter {this._pageCounter}" : page.Title, pageName, this._navCounter++);
 
             ConsoleDisplay.MainMessage(this._entry, $"Completed Page {this._pageCounter}");
@@ -137,8 +126,9 @@ namespace WebComicToEbook.Scraper
         {
             var imageBytes = File.ReadAllBytes(page.Path);
             ebook.AddImageData($"image{this._imageCounter}.png", imageBytes);
+            String p = this._pageTemplate.Replace("%%TITLE%%", "").Replace("%%CONTENT%%", $"<img src=\"image{this._imageCounter}.png\" alt=\"\"/>");
             String pageName = $"page{this._pageCounter}.xhtml";
-            ebook.AddXhtmlData(pageName, page.Content);
+            ebook.AddXhtmlData(pageName, p);
             ebook.AddNavPoint(page.Title.IsEmpty() ? $"Page {this._pageCounter}" : page.Title, pageName, this._navCounter++);
             ConsoleDisplay.MainMessage(this._entry, $"Completed Page {this._pageCounter}");
             this._pageCounter++;
@@ -182,6 +172,10 @@ namespace WebComicToEbook.Scraper
                         });
 
                         File.WriteAllText(pagePath, page);
+
+                        File.WriteAllText(
+                            Path.Combine(this._workingDirPath, "Pages.json"),
+                            JsonConvert.SerializeObject(this.Pages));
                     });
 
             this._pageCounter++;
@@ -218,7 +212,7 @@ namespace WebComicToEbook.Scraper
                 if (!Settings.Instance.CommandLineOptions.SaveProgressFolder.IsEmpty())
                 {
                     var pagesDir = Path.Combine(this._workingDirPath, this._entry.Title, "Images");
-                    Unless(!Directory.Exists(pagesDir), () => Directory.CreateDirectory(pagesDir));
+                    Unless(Directory.Exists(pagesDir), () => Directory.CreateDirectory(pagesDir));
 
                     var pagePath = Path.Combine(pagesDir, $"image{this._imageCounter}.png");
 
@@ -232,6 +226,10 @@ namespace WebComicToEbook.Scraper
                     });
 
                     File.WriteAllBytes(pagePath, memImg.GetBuffer());
+
+                    File.WriteAllText(
+                            Path.Combine(this._workingDirPath, "Pages.json"),
+                            JsonConvert.SerializeObject(this.Pages));
                 }
             }
             String page = this._pageTemplate.Replace("%%TITLE%%", "").Replace("%%CONTENT%%", $"<img src=\"image{this._imageCounter}.png\" alt=\"\"/>");

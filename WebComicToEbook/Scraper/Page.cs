@@ -22,7 +22,6 @@ namespace WebComicToEbook.Scraper
 
         public string PageUrl { get; set; }
 
-        public string Content { get; set; }
         public int Order { get; set; }
     }
 }
