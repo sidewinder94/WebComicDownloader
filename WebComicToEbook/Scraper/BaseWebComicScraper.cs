@@ -104,6 +104,8 @@ namespace WebComicToEbook.Scraper
                     case WebComicEntry.ContentType.Text:
                         RecoverTextPage(ebook, page);
                         break;
+                    case WebComicEntry.ContentType.Mixed:
+                        throw new NotImplementedException();//TODO : Implement Mixed Recovery
                     default:
                         break;
                 }

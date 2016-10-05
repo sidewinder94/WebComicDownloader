@@ -33,6 +33,11 @@ namespace WebComicToEbook.Scraper
 
         protected override void ScrapeWebPage(WebComicEntry entry, EPubDocument ebook, string nextPageUrl = null)
         {
+
+            if (entry.Content != WebComicEntry.ContentType.Text)
+                throw new NotSupportedException(
+                    $"This parser does not support the following content type {Enum.GetName(typeof(WebComicEntry.ContentType), entry.Content)}");
+
             do
             {
                 String title = "";

@@ -33,7 +33,10 @@ namespace WebComicToEbook
                     Settings.Instance.Entries.AsParallel().ForAll(
                         entry =>
                         {
+                            try
+                            {
 
+                            
                             if (entry.Parser == WebComicEntry.Parsers.XPath)
                             {
                                 scraper = new HAPWebComicScraper();
@@ -49,7 +52,11 @@ namespace WebComicToEbook
                                 return;
                             }
                             scraper.StartScraping(entry);
-
+                            }
+                            catch (NotSupportedException ex)
+                            {
+                                ConsoleDisplay.AppendLine($"[{entry.Title}][Exception] : {ex.Message}");
+                            }
                         });
                 }
             }

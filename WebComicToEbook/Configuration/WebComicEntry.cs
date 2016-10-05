@@ -42,7 +42,8 @@ namespace WebComicToEbook.Configuration
         public enum ContentType
         {
             Text,
-            Image
+            Image,
+            Mixed
         }
     }
 }

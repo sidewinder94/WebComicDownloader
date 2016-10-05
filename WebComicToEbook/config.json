@@ -1,6 +1,17 @@
 [
     {
     "Parser": "XPath",
+    "Content":  "Mixed", 
+    "BaseAddress": "https://shintranslations.com/vol-1-chapter-1/",
+    "NextButtonSelector": "//@href[contains(text(), '→')]",
+    "ChapterContentSelector": "//*[@class='entry-content']//p/following-sibling::p",
+    "ChapterTitleSelector": "//h1[@class='entry-title']",
+    "Author":"",
+    "Title":"The New Gate",
+    "Description":"Translated by Shin"
+    },
+    {
+    "Parser": "XPath",
     "Content": "Image", 
     "BaseAddress": "http://m.mangafox.me/manga/magika_no_kenshi_to_shoukan_maou/c001/001.html",
     "NextButtonSelector": "//a[img/@id='image']/@href",

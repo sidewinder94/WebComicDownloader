@@ -84,6 +84,10 @@ namespace WebComicToEbook.Scraper
                                     AddImage(ebook, wc, xIter.Current.Value, currentUrl);
                                 }
                             }
+                            else if (entry.Content == WebComicEntry.ContentType.Mixed)
+                            {
+                                throw new NotImplementedException();
+                            }
                             nextPageUrl = xNav.SelectSingleNode(entry.NextButtonSelector)?.Value;
                         }
                     }
