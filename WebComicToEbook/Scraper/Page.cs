@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Net.Mime;
 
 using Newtonsoft.Json;
@@ -13,6 +14,11 @@ namespace WebComicToEbook.Scraper
     {
 
         public string Path { get; set; }
+
+        /// <summary>
+        /// Used only when <see cref="ContentType"/> is set to <see cref="ContentType.Mixed"/>
+        /// </summary>
+        public List<string> ImagesPath { get; set; }
 
         [JsonConverter(typeof(StringEnumConverter))]
         [DefaultValue(ContentType.Text)]

@@ -37,7 +37,6 @@ namespace WebComicToEbook.Scraper
         protected override void ScrapeWebPage(WebComicEntry entry, Document ebook, string nextPageUrl = null)
         {
             // http://htmlagilitypack.codeplex.com/wikipage?title=Examples
-
             do
             {
                 string content = string.Empty;
@@ -61,8 +60,8 @@ namespace WebComicToEbook.Scraper
                             {
                                 ConsoleDisplay.AddAdditionalMessageDisplay(
                                     entry,
-                                    $"Title not found for page {_pageCounter}, replacing with default value");
-                                title = WebUtility.HtmlEncode($"Chapter - {_pageCounter}");
+                                    $"Title not found for page {this._pageCounter}, replacing with default value");
+                                title = WebUtility.HtmlEncode($"Chapter - {this._pageCounter}");
                             }
 
                             XPathNodeIterator xIter = xNav.Select(entry.ChapterContentSelector);
@@ -76,18 +75,25 @@ namespace WebComicToEbook.Scraper
                                     var temp = $"<{xIter.Current.Name}>{xIter.Current.Value}</{xIter.Current.Name}>";
                                     content += temp;
                                 }
+
+                                this.AddPage(ebook, content, title, currentUrl);
                             }
                             else if (entry.Content == WebComicEntry.ContentType.Image)
                             {
                                 while (xIter.MoveNext())
                                 {
-                                    AddImage(ebook, wc, xIter.Current.Value, currentUrl);
+                                    this.AddImage(ebook, wc, xIter.Current.Value, currentUrl);
                                 }
                             }
                             else if (entry.Content == WebComicEntry.ContentType.Mixed)
                             {
-                                throw new NotImplementedException();
+                                while (xIter.MoveNext())
+                                {
+                                    var subIter = xIter.Current.SelectChildren(XPathNodeType.Element);
+                                    this.AddCompositePage(ebook, subIter, title, wc);
+                                }
                             }
+
                             nextPageUrl = xNav.SelectSingleNode(entry.NextButtonSelector)?.Value;
                         }
                     }
@@ -98,12 +104,6 @@ namespace WebComicToEbook.Scraper
                     {
                         return;
                     }
-                    continue;
-                }
-
-                if (entry.Content == WebComicEntry.ContentType.Text)
-                {
-                    AddPage(ebook, content, title, currentUrl);
                 }
             }
             while (!nextPageUrl.IsEmpty());

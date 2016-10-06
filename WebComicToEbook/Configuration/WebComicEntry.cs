@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.SqlTypes;
 using Newtonsoft.Json;
@@ -19,6 +20,14 @@ namespace WebComicToEbook.Configuration
         public String ChapterTitleSelector = "";
 
         public String ChapterContentSelector = "";
+
+        public String[] ImageTags = new[] { "img" };
+
+        public Dictionary<String, String> ImageSourceAttributes = new Dictionary<string, string> { { "img", "src" } };
+
+        public String[] IncludeTags = new String[0];
+
+        public String InteruptAtTag = "";
 
         public String Author;
 
