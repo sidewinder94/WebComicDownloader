@@ -90,7 +90,7 @@ namespace WebComicToEbook.Scraper
                                 while (xIter.MoveNext())
                                 {
                                     var subIter = xIter.Current.SelectChildren(XPathNodeType.Element);
-                                    this.AddCompositePage(ebook, subIter, title, wc);
+                                    this.AddCompositePage(ebook, subIter, title, wc, currentUrl);
                                 }
                             }
 
