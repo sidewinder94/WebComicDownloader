@@ -1,22 +1,26 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using System.Net;
+using System.Text;
 using System.Xml.XPath;
 
 using Epub;
 
 using HtmlAgilityPack;
-
+using Newtonsoft.Json;
 using Utils.Text;
 
 using WebComicToEbook.Configuration;
 using WebComicToEbook.EmbeddedResources;
 using WebComicToEbook.Properties;
 using WebComicToEbook.Utils;
-
 using EPubDocument = Epub.Document;
+
+using static Utils.Misc.Misc;
 
 namespace WebComicToEbook.Scraper
 {
@@ -90,7 +94,7 @@ namespace WebComicToEbook.Scraper
                                 while (xIter.MoveNext())
                                 {
                                     var subIter = xIter.Current.SelectChildren(XPathNodeType.Element);
-                                    this.AddCompositePage(ebook, subIter, title, wc, currentUrl);
+                                    this.AddCompositePage(ebook, subIter, title, wc, currentUrl, entry);
                                 }
                             }
 
@@ -107,6 +111,117 @@ namespace WebComicToEbook.Scraper
                 }
             }
             while (!nextPageUrl.IsEmpty());
+        }
+
+        protected void AddCompositePage(EPubDocument ebook, XPathNodeIterator iter, string title, WebClient wc, string currentUrl, WebComicEntry entry)
+        {
+            var page = this._pageTemplate.Replace("%%TITLE%%", title);
+            var content = string.Empty;
+            title = WebUtility.HtmlDecode(title);
+
+            var pagesDir = Path.Combine(this.WorkingDirPath, entry.Title, "Pages");
+            var imagesDir = Path.Combine(this.WorkingDirPath, entry.Title, "Images");
+            var p = new Page()
+            {
+                Title = title,
+                Order = this._pageCounter,
+                Type = WebComicEntry.ContentType.Mixed,
+                PageUrl = currentUrl,
+                ImagesPath = new List<string>()
+            };
+
+            while (iter.MoveNext())
+            {
+                if (entry.IncludeTags.Contains(iter.Current.Name))
+                {
+                    content = HandleMixedContent(ebook, iter, wc, imagesDir, p, content, entry);
+                }
+                else if (entry.InteruptAtTag != iter.Current.Name)
+                {
+                    var exprBuilder = new StringBuilder();
+                    foreach (var tag in entry.IncludeTags)
+                    {
+                        exprBuilder.Append($".//{tag}|");
+                    }
+
+                    var subIter = iter.Current.Select(exprBuilder.ToString().TrimEnd('|'));
+
+                    while (subIter.MoveNext())
+                    {
+                        content = HandleMixedContent(ebook, subIter, wc, imagesDir, p, content, entry);
+                    }
+                }
+
+                //On break sur le tag indiqué
+                if (entry.InteruptAtTag == iter.Current.Name) break;
+            }
+
+            page = page.Replace("%%CONTENT%%", content);
+
+            String pageName = $"page{this._pageCounter}.xhtml";
+            if (!Settings.Instance.CommandLineOptions.SaveProgressFolder.IsEmpty())
+            {
+                Unless(Directory.Exists(pagesDir), () => Directory.CreateDirectory(pagesDir));
+                var pagePath = Path.Combine(pagesDir, pageName);
+                p.Path = pagePath;
+                File.WriteAllText(pagePath, page);
+
+                this.Pages.Add(p);
+
+                File.WriteAllText(
+                    Path.Combine(this.WorkingDirPath, "Pages.json"),
+                    JsonConvert.SerializeObject(this.Pages));
+            }
+
+            ebook.AddXhtmlData(pageName, page);
+            ebook.AddNavPoint(title.IsEmpty() ? $"Page {this._pageCounter}" : title, pageName, this._navCounter++);
+            ConsoleDisplay.MainMessage(entry, $"Completed Page {this._pageCounter}");
+            this._pageCounter++;
+        }
+
+        private string HandleMixedContent(Document ebook, XPathNodeIterator iter, WebClient wc, string imagesDir, Page p, string content, WebComicEntry entry)
+        {
+            if (entry.ImageTags.Contains(iter.Current.Name))
+            {
+                string url = null;
+                if (entry.ImageSourceAttributes[iter.Current.Name] == ".")
+                {
+                    url = iter.Current.Value;
+                }
+                else
+                {
+                    url = iter.Current.GetAttribute(entry.ImageSourceAttributes[iter.Current.Name], "");
+                }
+
+                using (MemoryStream memImg = new MemoryStream())
+                {
+                    this.DownloadImage(wc, memImg, url);
+                    ebook.AddImageData($"image{this._imageCounter}.png", memImg.GetBuffer());
+
+                    if (!Settings.Instance.CommandLineOptions.SaveProgressFolder.IsEmpty())
+                    {
+                        Unless(Directory.Exists(imagesDir), () => Directory.CreateDirectory(imagesDir));
+                        var imagePath = Path.Combine(
+                            imagesDir,
+                            $"image{this._imageCounter}.png");
+                        File.WriteAllBytes(imagePath, memImg.GetBuffer());
+                        p.ImagesPath.Add(imagePath
+                        );
+                    }
+                }
+
+                //Image processing
+                var temp = $"<img src=\"image{this._imageCounter}.png\" alt=\"\"/>";
+                content += temp;
+                this._imageCounter++;
+            }
+            else
+            {
+                //Text processing
+                var temp = $"<{iter.Current.Name}>{iter.Current.Value}</{iter.Current.Name}>";
+                content += temp;
+            }
+            return content;
         }
     }
 }
