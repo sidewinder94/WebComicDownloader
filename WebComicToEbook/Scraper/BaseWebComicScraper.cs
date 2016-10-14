@@ -108,13 +108,31 @@ namespace WebComicToEbook.Scraper
                         RecoverTextPage(ebook, page);
                         break;
                     case WebComicEntry.ContentType.Mixed:
-                        throw new NotImplementedException();//TODO : Implement Mixed Recovery
+                        RecoverCompositePage(ebook, page);
+                        break;
                     default:
                         break;
                 }
             }
 
             return null;
+        }
+
+        private void RecoverCompositePage(EPubDocument ebook, Page page)
+        {
+            string pageName = $"page{_pageCounter}.xhtml";
+            ebook.AddXhtmlData(pageName, File.ReadAllText(page.Path));
+            ebook.AddNavPoint(page.Title.IsEmpty() ? $"Chapter {this._pageCounter}" : page.Title, pageName, this._navCounter++);
+
+            page.ImagesPath.ForEach(ip =>
+            {
+                var imageBytes = File.ReadAllBytes(ip);
+                ebook.AddImageData($"image{this._imageCounter}.png", imageBytes);
+                _imageCounter++;
+            });
+
+            ConsoleDisplay.MainMessage(this._entry, $"Completed Page {this._pageCounter}");
+            this._pageCounter++;
         }
 
         private void RecoverTextPage(EPubDocument ebook, Page page)
@@ -268,51 +286,29 @@ namespace WebComicToEbook.Scraper
             {
                 if (this._entry.IncludeTags.Contains(iter.Current.Name))
                 {
-                    if (this._entry.ImageTags.Contains(iter.Current.Name))
+                    content = HandleMixedContent(ebook, iter, wc, imagesDir, p, content);
+                }
+                else if (this._entry.InteruptAtTag != iter.Current.Name)
+                {
+                    var exprBuilder = new StringBuilder();
+                    foreach (var tag in _entry.IncludeTags)
                     {
-                        string url = null;
-                        if (this._entry.ImageSourceAttributes[iter.Current.Name] == ".")
-                        {
-                            url = iter.Current.Value;
-                        }
-                        else
-                        {
-                            url = iter.Current.GetAttribute(this._entry.ImageSourceAttributes[iter.Current.Name], "");
-                        }
-
-                        using (MemoryStream memImg = new MemoryStream())
-                        {
-                            this.DownloadImage(wc, memImg, url);
-                            ebook.AddImageData($"image{this._imageCounter}.png", memImg.GetBuffer());
-
-                            if (!Settings.Instance.CommandLineOptions.SaveProgressFolder.IsEmpty())
-                            {
-                                Unless(Directory.Exists(imagesDir), () => Directory.CreateDirectory(imagesDir));
-                                var imagePath = Path.Combine(
-                                    imagesDir,
-                                    $"image{this._imageCounter}.png");
-                                File.WriteAllBytes(imagePath, memImg.GetBuffer());
-                                p.ImagesPath.Add(imagePath
-                                   );
-                            }
-                        }
-
-                        //Image processing
-                        var temp = $"<img src=\"image{this._imageCounter}.png\" alt=\"\"/>";
-                        content += temp;
-                        this._imageCounter++;
+                        exprBuilder.Append($".//{tag}|");
                     }
-                    else
+
+                    var subIter = iter.Current.Select(exprBuilder.ToString().TrimEnd('|'));
+
+                    while (subIter.MoveNext())
                     {
-                        //Text processing
-                        var temp = $"<{iter.Current.Name}>{iter.Current.Value}</{iter.Current.Name}>";
-                        content += temp;
+                        content = HandleMixedContent(ebook, subIter, wc, imagesDir, p, content);
                     }
                 }
 
                 //On break sur le tag indiqué
                 if (this._entry.InteruptAtTag == iter.Current.Name) break;
             }
+
+            page = page.Replace("%%CONTENT%%", content);
 
             String pageName = $"page{this._pageCounter}.xhtml";
             if (!Settings.Instance.CommandLineOptions.SaveProgressFolder.IsEmpty())
@@ -321,6 +317,8 @@ namespace WebComicToEbook.Scraper
                 var pagePath = Path.Combine(pagesDir, pageName);
                 p.Path = pagePath;
                 File.WriteAllText(pagePath, page);
+
+                this.Pages.Add(p);
 
                 File.WriteAllText(
                     Path.Combine(this._workingDirPath, "Pages.json"),
@@ -331,6 +329,51 @@ namespace WebComicToEbook.Scraper
             ebook.AddNavPoint(title.IsEmpty() ? $"Page {this._pageCounter}" : title, pageName, this._navCounter++);
             ConsoleDisplay.MainMessage(this._entry, $"Completed Page {this._pageCounter}");
             this._pageCounter++;
+        }
+
+        private string HandleMixedContent(Document ebook, XPathNodeIterator iter, WebClient wc, string imagesDir, Page p, string content)
+        {
+            if (this._entry.ImageTags.Contains(iter.Current.Name))
+            {
+                string url = null;
+                if (this._entry.ImageSourceAttributes[iter.Current.Name] == ".")
+                {
+                    url = iter.Current.Value;
+                }
+                else
+                {
+                    url = iter.Current.GetAttribute(this._entry.ImageSourceAttributes[iter.Current.Name], "");
+                }
+
+                using (MemoryStream memImg = new MemoryStream())
+                {
+                    this.DownloadImage(wc, memImg, url);
+                    ebook.AddImageData($"image{this._imageCounter}.png", memImg.GetBuffer());
+
+                    if (!Settings.Instance.CommandLineOptions.SaveProgressFolder.IsEmpty())
+                    {
+                        Unless(Directory.Exists(imagesDir), () => Directory.CreateDirectory(imagesDir));
+                        var imagePath = Path.Combine(
+                            imagesDir,
+                            $"image{this._imageCounter}.png");
+                        File.WriteAllBytes(imagePath, memImg.GetBuffer());
+                        p.ImagesPath.Add(imagePath
+                        );
+                    }
+                }
+
+                //Image processing
+                var temp = $"<img src=\"image{this._imageCounter}.png\" alt=\"\"/>";
+                content += temp;
+                this._imageCounter++;
+            }
+            else
+            {
+                //Text processing
+                var temp = $"<{iter.Current.Name}>{iter.Current.Value}</{iter.Current.Name}>";
+                content += temp;
+            }
+            return content;
         }
 
         private string DetectBestName(string baseName, out bool existing, int iter = 0)
