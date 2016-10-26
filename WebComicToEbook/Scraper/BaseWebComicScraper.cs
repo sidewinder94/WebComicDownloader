@@ -43,9 +43,13 @@ namespace WebComicToEbook.Scraper
 
         protected List<Page> Pages = new List<Page>();
 
+        private static readonly char[] InvalidChars = Path.GetInvalidFileNameChars().Union(Path.GetInvalidPathChars()).ToArray();
+
         private string _workingDirPath;
 
         protected string WorkingDirPath => _workingDirPath;
+
+        private string _sanitizedName;
 
         public void StartScraping(WebComicEntry entry)
         {
@@ -54,9 +58,12 @@ namespace WebComicToEbook.Scraper
             var ebook = new Document();
             bool existing = false;
             string nextPageUrl = null;
-            String outputName = DetectBestName(this._entry.Title, out existing);
 
-            this._workingDirPath = Path.Combine(Settings.Instance.CommandLineOptions.SaveProgressFolder, entry.Title);
+            this._sanitizedName = new string(entry.Title.Where(c => !InvalidChars.Contains(c)).ToArray());
+
+            String outputName = this.DetectBestName(this._sanitizedName, out existing);
+
+            this._workingDirPath = Path.Combine(Settings.Instance.CommandLineOptions.SaveProgressFolder, this._sanitizedName);
 
             if (!Settings.Instance.CommandLineOptions.SaveProgressFolder.IsEmpty() &&
                 !Directory.Exists(this._workingDirPath))
@@ -182,7 +189,7 @@ namespace WebComicToEbook.Scraper
             Unless(Settings.Instance.CommandLineOptions.SaveProgressFolder.IsEmpty(),
                 () =>
                     {
-                        var pagesDir = Path.Combine(this._workingDirPath, this._entry.Title, "Pages");
+                        var pagesDir = Path.Combine(this._workingDirPath, this._sanitizedName, "Pages");
                         Unless(Directory.Exists(pagesDir), () => Directory.CreateDirectory(pagesDir));
 
                         var pagePath = Path.Combine(pagesDir, pageName);
@@ -236,7 +243,7 @@ namespace WebComicToEbook.Scraper
 
                 if (!Settings.Instance.CommandLineOptions.SaveProgressFolder.IsEmpty())
                 {
-                    var pagesDir = Path.Combine(this._workingDirPath, this._entry.Title, "Images");
+                    var pagesDir = Path.Combine(this._workingDirPath, this._sanitizedName, "Images");
                     Unless(Directory.Exists(pagesDir), () => Directory.CreateDirectory(pagesDir));
 
                     var pagePath = Path.Combine(pagesDir, $"image{this._imageCounter}.png");

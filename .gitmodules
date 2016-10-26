@@ -1,6 +1,3 @@
 [submodule "DotNetEpub"]
 	path = DotNetEpub
 	url = https://github.com/gonzoua/DotNetEpub.git
-[submodule "Utils"]
-	path = Utils
-	url = https://github.com/sidewinder94/Utils.git

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.SqlTypes;
+using System.IO;
+using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -40,7 +42,6 @@ namespace WebComicToEbook.Configuration
         [JsonConverter(typeof(StringEnumConverter))]
         [DefaultValue(ContentType.Text)]
         public ContentType Content = ContentType.Text;
-
 
         public enum Parsers
         {

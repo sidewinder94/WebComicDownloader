@@ -18,6 +18,17 @@
   {
     "Parser": "XPath",
     "Content": "Image",
+    "BaseAddress": "http://m.mangafox.me/manga/re_monster/c001/1.html",
+    "NextButtonSelector": "//a[img/@id='image']/@href",
+    "ChapterContentSelector": "//@src[@id='image']",
+    "Author": "",
+    "Date": "2016-03-18T13:24:36.2855417+01:00",
+    "Title": "Re:Monster",
+    "Description": ""
+  },
+  {
+    "Parser": "XPath",
+    "Content": "Image",
     "BaseAddress": "http://m.mangafox.me/manga/magika_no_kenshi_to_shoukan_maou/c001/001.html",
     "NextButtonSelector": "//a[img/@id='image']/@href",
     "ChapterContentSelector": "//@src[@id='image']",
