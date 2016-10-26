@@ -1,25 +1,19 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading;
-using System.Xml.Linq;
+
+using CommandLine;
 
 using WebComicToEbook.Configuration;
 using WebComicToEbook.Properties;
 using WebComicToEbook.Scraper;
 using WebComicToEbook.Utils;
-using CommandLine;
-using CommandLine.Text;
-using static Utils.Text.Comparison;
-
 
 namespace WebComicToEbook
 {
     class Program
     {
-        private static ConsoleDisplay _display = new ConsoleDisplay();
+        private static readonly ConsoleDisplay Display = new ConsoleDisplay();
 
         static void Main(string[] args)
         {
@@ -36,22 +30,23 @@ namespace WebComicToEbook
                             try
                             {
 
-                            
-                            if (entry.Parser == WebComicEntry.Parsers.XPath)
-                            {
-                                scraper = new HAPWebComicScraper();
-                            }
-                            else if (entry.Parser == WebComicEntry.Parsers.RegExp)
-                            {
-                                scraper = new RegExpWebComicScraper();
-                            }
-                            else
-                            {
-                                ConsoleDisplay.AppendLine(
-                                    $"Unknown scraper type for entry {entry.Title} - {entry.BaseAddress}");
-                                return;
-                            }
-                            scraper.StartScraping(entry);
+
+                                if (entry.Parser == WebComicEntry.Parsers.XPath)
+                                {
+                                    scraper = new HAPWebComicScraper();
+                                }
+                                else if (entry.Parser == WebComicEntry.Parsers.RegExp)
+                                {
+                                    scraper = new RegExpWebComicScraper();
+                                }
+                                else
+                                {
+                                    ConsoleDisplay.AppendLine(
+                                        $"Unknown scraper type for entry {entry.Title} - {entry.BaseAddress}");
+                                    return;
+                                }
+
+                                scraper.StartScraping(entry);
                             }
                             catch (NotSupportedException ex)
                             {
@@ -62,11 +57,10 @@ namespace WebComicToEbook
             }
             else
             {
-                _display.Halted = true;
-                Console.WriteLine("No parameters given and no config file found ! Creating one now...");
+                Display.Halted = true;
+                Console.WriteLine(Resources.ErrorNoConfigFileFound);
                 Settings.Instance.Entries.Add(new WebComicEntry());
                 Settings.Instance.Save();
-                return;
             }
         }
     }

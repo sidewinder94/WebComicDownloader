@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Timers;
 
 using WebComicToEbook.Configuration;
@@ -23,7 +22,7 @@ namespace WebComicToEbook.Utils
 
         public bool Halted = false;
 
-        private Timer _timer;
+        private readonly Timer _timer;
 
         public ConsoleDisplay()
         {
@@ -103,7 +102,7 @@ namespace WebComicToEbook.Utils
 
                 Console.WriteLine();
 
-                foreach (var entry in ConsoleDisplay.MainMessageDisplay.Keys.OrderBy(k => k.Title))
+                foreach (var entry in MainMessageDisplay.Keys.OrderBy(k => k.Title))
                 {
                     string additionalText = string.Empty;
 
@@ -113,12 +112,12 @@ namespace WebComicToEbook.Utils
                         if (AdditionalMessageDisplay[entry].Count > 0)
                         {
                             additionalText = AdditionalMessageDisplay[entry].Aggregate(
-                                additionalText, 
+                                additionalText,
                                 (current, content) => current + $" - {content}");
                         }
                     }
 
-                    Console.WriteLine($"[{entry.Title}] : {MainMessageDisplay[entry]}{additionalText}");
+                    Console.WriteLine($@"[{entry.Title}] : {MainMessageDisplay[entry]}{additionalText}");
                 }
 
                 foreach (var line in AppendContent)

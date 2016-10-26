@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data.SqlTypes;
-using System.IO;
-using System.Linq;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -15,29 +13,29 @@ namespace WebComicToEbook.Configuration
         [DefaultValue(Parsers.XPath)]
         public Parsers Parser = Parsers.XPath;
 
-        public String BaseAddress = "";
+        public string BaseAddress = string.Empty;
 
-        public String NextButtonSelector = "";
+        public string NextButtonSelector = string.Empty;
 
-        public String ChapterTitleSelector = "";
+        public string ChapterTitleSelector = string.Empty;
 
-        public String ChapterContentSelector = "";
+        public string ChapterContentSelector = string.Empty;
 
-        public String[] ImageTags = new[] { "img" };
+        public string[] ImageTags = new[] { "img" };
 
-        public Dictionary<String, String> ImageSourceAttributes = new Dictionary<string, string> { { "img", "src" } };
+        public Dictionary<string, string> ImageSourceAttributes = new Dictionary<string, string> { { "img", "src" } };
 
-        public String[] IncludeTags = new String[0];
+        public string[] IncludeTags = new string[0];
 
-        public String InteruptAtTag = "";
+        public string InteruptAtTag = string.Empty;
 
-        public String Author;
+        public string Author;
 
         public DateTime Date = DateTime.Now;
 
-        public String Title;
+        public string Title;
 
-        public String Description;
+        public string Description;
 
         [JsonConverter(typeof(StringEnumConverter))]
         [DefaultValue(ContentType.Text)]

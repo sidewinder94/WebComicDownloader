@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
-using System.Net.Mime;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;

@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 namespace WebComicToEbook.EmbeddedResources
 {
@@ -10,7 +9,7 @@ namespace WebComicToEbook.EmbeddedResources
             return new MemoryStream(resource);
         }
 
-        public static String AsString(this byte[] resource)
+        public static string AsString(this byte[] resource)
         {
             using (var sr = new StreamReader(resource.AsStream()))
             {

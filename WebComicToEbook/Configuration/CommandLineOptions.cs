@@ -1,6 +1,4 @@
-﻿using System;
-
-using CommandLine;
+﻿using CommandLine;
 using CommandLine.Text;
 
 namespace WebComicToEbook.Configuration
@@ -14,10 +12,10 @@ namespace WebComicToEbook.Configuration
         public bool Redownload { get; set; }
 
         [Option('i', "config", DefaultValue = "config.json", HelpText = "The path to the configuration file to use")]
-        public String ConfigFilePath { get; set; }
+        public string ConfigFilePath { get; set; }
 
         [Option(longName: "save-progress", DefaultValue = "", HelpText = "The path to save the current progress, temporary directory by default (won't be able to resume)")]
-        public String SaveProgressFolder { get; set; }
+        public string SaveProgressFolder { get; set; }
 
         [HelpOption]
         public string GetUsage()

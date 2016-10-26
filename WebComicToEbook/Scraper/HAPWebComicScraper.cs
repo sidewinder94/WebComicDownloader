@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -11,16 +8,17 @@ using System.Xml.XPath;
 using Epub;
 
 using HtmlAgilityPack;
+
 using Newtonsoft.Json;
+
 using Utils.Text;
 
 using WebComicToEbook.Configuration;
-using WebComicToEbook.EmbeddedResources;
-using WebComicToEbook.Properties;
 using WebComicToEbook.Utils;
-using EPubDocument = Epub.Document;
 
 using static Utils.Misc.Misc;
+
+using EPubDocument = Epub.Document;
 
 namespace WebComicToEbook.Scraper
 {
@@ -64,8 +62,8 @@ namespace WebComicToEbook.Scraper
                             {
                                 ConsoleDisplay.AddAdditionalMessageDisplay(
                                     entry,
-                                    $"Title not found for page {this._pageCounter}, replacing with default value");
-                                title = WebUtility.HtmlEncode($"Chapter - {this._pageCounter}");
+                                    $"Title not found for page {this.PageCounter}, replacing with default value");
+                                title = WebUtility.HtmlEncode($"Chapter - {this.PageCounter}");
                             }
 
                             XPathNodeIterator xIter = xNav.Select(entry.ChapterContentSelector);
@@ -113,9 +111,9 @@ namespace WebComicToEbook.Scraper
             while (!nextPageUrl.IsEmpty());
         }
 
-        protected void AddCompositePage(EPubDocument ebook, XPathNodeIterator iter, string title, WebClient wc, string currentUrl, WebComicEntry entry)
+        protected void AddCompositePage(Document ebook, XPathNodeIterator iter, string title, WebClient wc, string currentUrl, WebComicEntry entry)
         {
-            var page = this._pageTemplate.Replace("%%TITLE%%", title);
+            var page = this.PageTemplate.Replace("%%TITLE%%", title);
             var content = string.Empty;
             title = WebUtility.HtmlDecode(title);
 
@@ -124,7 +122,7 @@ namespace WebComicToEbook.Scraper
             var p = new Page()
             {
                 Title = title,
-                Order = this._pageCounter,
+                Order = this.PageCounter,
                 Type = WebComicEntry.ContentType.Mixed,
                 PageUrl = currentUrl,
                 ImagesPath = new List<string>()
@@ -134,7 +132,7 @@ namespace WebComicToEbook.Scraper
             {
                 if (entry.IncludeTags.Contains(iter.Current.Name))
                 {
-                    content = HandleMixedContent(ebook, iter, wc, imagesDir, p, content, entry);
+                    content = this.HandleMixedContent(ebook, iter, wc, imagesDir, p, content, entry);
                 }
                 else if (entry.InteruptAtTag != iter.Current.Name)
                 {
@@ -148,17 +146,17 @@ namespace WebComicToEbook.Scraper
 
                     while (subIter.MoveNext())
                     {
-                        content = HandleMixedContent(ebook, subIter, wc, imagesDir, p, content, entry);
+                        content = this.HandleMixedContent(ebook, subIter, wc, imagesDir, p, content, entry);
                     }
                 }
 
-                //On break sur le tag indiqué
+                // On break sur le tag indiqué
                 if (entry.InteruptAtTag == iter.Current.Name) break;
             }
 
             page = page.Replace("%%CONTENT%%", content);
 
-            String pageName = $"page{this._pageCounter}.xhtml";
+            string pageName = $"page{this.PageCounter}.xhtml";
             if (!Settings.Instance.CommandLineOptions.SaveProgressFolder.IsEmpty())
             {
                 Unless(Directory.Exists(pagesDir), () => Directory.CreateDirectory(pagesDir));
@@ -174,53 +172,56 @@ namespace WebComicToEbook.Scraper
             }
 
             ebook.AddXhtmlData(pageName, page);
-            ebook.AddNavPoint(title.IsEmpty() ? $"Page {this._pageCounter}" : title, pageName, this._navCounter++);
-            ConsoleDisplay.MainMessage(entry, $"Completed Page {this._pageCounter}");
-            this._pageCounter++;
+            ebook.AddNavPoint(title.IsEmpty() ? $"Page {this.PageCounter}" : title, pageName, this.NavCounter++);
+            ConsoleDisplay.MainMessage(entry, $"Completed Page {this.PageCounter}");
+            this.PageCounter++;
         }
 
         private string HandleMixedContent(Document ebook, XPathNodeIterator iter, WebClient wc, string imagesDir, Page p, string content, WebComicEntry entry)
         {
             if (entry.ImageTags.Contains(iter.Current.Name))
             {
-                string url = null;
+                string url;
+
+                //If the image link is in the value of the tag instead of an attibute, a dot should be used to indicate that
                 if (entry.ImageSourceAttributes[iter.Current.Name] == ".")
                 {
                     url = iter.Current.Value;
                 }
                 else
                 {
-                    url = iter.Current.GetAttribute(entry.ImageSourceAttributes[iter.Current.Name], "");
+                    url = iter.Current.GetAttribute(entry.ImageSourceAttributes[iter.Current.Name], string.Empty);
                 }
 
                 using (MemoryStream memImg = new MemoryStream())
                 {
                     this.DownloadImage(wc, memImg, url);
-                    ebook.AddImageData($"image{this._imageCounter}.png", memImg.GetBuffer());
+                    ebook.AddImageData($"image{this.ImageCounter}.png", memImg.GetBuffer());
 
                     if (!Settings.Instance.CommandLineOptions.SaveProgressFolder.IsEmpty())
                     {
                         Unless(Directory.Exists(imagesDir), () => Directory.CreateDirectory(imagesDir));
                         var imagePath = Path.Combine(
                             imagesDir,
-                            $"image{this._imageCounter}.png");
+                            $"image{this.ImageCounter}.png");
                         File.WriteAllBytes(imagePath, memImg.GetBuffer());
                         p.ImagesPath.Add(imagePath
                         );
                     }
                 }
 
-                //Image processing
-                var temp = $"<img src=\"image{this._imageCounter}.png\" alt=\"\"/>";
+                // Image processing
+                var temp = $"<img src=\"image{this.ImageCounter}.png\" alt=\"\"/>";
                 content += temp;
-                this._imageCounter++;
+                this.ImageCounter++;
             }
             else
             {
-                //Text processing
+                // Text processing
                 var temp = $"<{iter.Current.Name}>{iter.Current.Value}</{iter.Current.Name}>";
                 content += temp;
             }
+
             return content;
         }
     }

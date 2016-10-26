@@ -8,7 +8,7 @@ namespace WebComicToEbook.Configuration
     {
         public const string DefaultConfigFile = "config.json";
 
-        public static Settings Instance => Holder.settings;
+        public static Settings Instance => Holder.Settings;
 
         private Settings()
         {
@@ -34,7 +34,7 @@ namespace WebComicToEbook.Configuration
 
         private static class Holder
         {
-            public static readonly Settings settings = new Settings();
+            public static readonly Settings Settings = new Settings();
         }
     }
 }

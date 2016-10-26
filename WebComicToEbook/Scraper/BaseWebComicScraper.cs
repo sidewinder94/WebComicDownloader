@@ -1,29 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Configuration;
-using System.Text;
 using System.Threading.Tasks;
-using System.Xml.XPath;
 
 using Epub;
-
-using Microsoft.Win32.SafeHandles;
 
 using Newtonsoft.Json;
 
 using Utils.Text;
-using static Utils.Misc.Misc;
 
 using WebComicToEbook.Configuration;
 using WebComicToEbook.EmbeddedResources;
 using WebComicToEbook.Properties;
 using WebComicToEbook.Utils;
+
+using static Utils.Misc.Misc;
 
 using EPubDocument = Epub.Document;
 
@@ -31,13 +25,13 @@ namespace WebComicToEbook.Scraper
 {
     public abstract class BaseWebComicScraper
     {
-        protected int _navCounter = 1;
+        protected int NavCounter = 1;
 
-        protected int _pageCounter = 1;
+        protected int PageCounter = 1;
 
-        protected int _imageCounter = 1;
+        protected int ImageCounter = 1;
 
-        protected string _pageTemplate = Resources.page.AsString();
+        protected readonly string PageTemplate = Resources.page.AsString();
 
         private WebComicEntry _entry;
 
@@ -47,7 +41,7 @@ namespace WebComicToEbook.Scraper
 
         private string _workingDirPath;
 
-        protected string WorkingDirPath => _workingDirPath;
+        protected string WorkingDirPath => this._workingDirPath;
 
         private string _sanitizedName;
 
@@ -56,12 +50,12 @@ namespace WebComicToEbook.Scraper
 
             this._entry = entry;
             var ebook = new Document();
-            bool existing = false;
+            bool existing;
             string nextPageUrl = null;
 
             this._sanitizedName = new string(entry.Title.Where(c => !InvalidChars.Contains(c)).ToArray());
 
-            String outputName = this.DetectBestName(this._sanitizedName, out existing);
+            string outputName = this.DetectBestName(this._sanitizedName, out existing);
 
             this._workingDirPath = Path.Combine(Settings.Instance.CommandLineOptions.SaveProgressFolder, this._sanitizedName);
 
@@ -87,8 +81,8 @@ namespace WebComicToEbook.Scraper
             if (!existing || Settings.Instance.CommandLineOptions.Redownload)
             {
                 ebook.AddStylesheetData("style.css", Resources.style);
-                SetMetadata(ebook);
-                ScrapeWebPage(this._entry, ebook, nextPageUrl);
+                this.SetMetadata(ebook);
+                this.ScrapeWebPage(this._entry, ebook, nextPageUrl);
                 ebook.Generate(outputName);
                 ConsoleDisplay.MainMessage(entry, "Finished Compiling book");
             }
@@ -98,7 +92,7 @@ namespace WebComicToEbook.Scraper
             }
         }
 
-        private string RecoverProgress(EPubDocument ebook)
+        private string RecoverProgress(Document ebook)
         {
             var orderedPages = this.Pages.OrderBy(p => p.Order).ToList();
             foreach (var page in orderedPages)
@@ -111,15 +105,13 @@ namespace WebComicToEbook.Scraper
                 switch (page.Type)
                 {
                     case WebComicEntry.ContentType.Image:
-                        RecoverImagePage(ebook, page);
+                        this.RecoverImagePage(ebook, page);
                         break;
                     case WebComicEntry.ContentType.Text:
-                        RecoverTextPage(ebook, page);
+                        this.RecoverTextPage(ebook, page);
                         break;
                     case WebComicEntry.ContentType.Mixed:
-                        RecoverCompositePage(ebook, page);
-                        break;
-                    default:
+                        this.RecoverCompositePage(ebook, page);
                         break;
                 }
             }
@@ -127,63 +119,63 @@ namespace WebComicToEbook.Scraper
             return null;
         }
 
-        private void RecoverCompositePage(EPubDocument ebook, Page page)
+        private void RecoverCompositePage(Document ebook, Page page)
         {
-            string pageName = $"page{_pageCounter}.xhtml";
+            string pageName = $"page{this.PageCounter}.xhtml";
             ebook.AddXhtmlData(pageName, File.ReadAllText(page.Path));
-            ebook.AddNavPoint(page.Title.IsEmpty() ? $"Chapter {this._pageCounter}" : page.Title, pageName, this._navCounter++);
+            ebook.AddNavPoint(page.Title.IsEmpty() ? $"Chapter {this.PageCounter}" : page.Title, pageName, this.NavCounter++);
 
             page.ImagesPath.ForEach(ip =>
             {
                 var imageBytes = File.ReadAllBytes(ip);
-                ebook.AddImageData($"image{this._imageCounter}.png", imageBytes);
-                _imageCounter++;
+                ebook.AddImageData($"image{this.ImageCounter}.png", imageBytes);
+                this.ImageCounter++;
             });
 
-            ConsoleDisplay.MainMessage(this._entry, $"Completed Page {this._pageCounter}");
-            this._pageCounter++;
+            ConsoleDisplay.MainMessage(this._entry, $"Completed Page {this.PageCounter}");
+            this.PageCounter++;
         }
 
-        private void RecoverTextPage(EPubDocument ebook, Page page)
+        private void RecoverTextPage(Document ebook, Page page)
         {
-            String pageName = $"page{this._pageCounter}.xhtml";
+            string pageName = $"page{this.PageCounter}.xhtml";
             ebook.AddXhtmlData(pageName, File.ReadAllText(page.Path));
-            ebook.AddNavPoint(page.Title.IsEmpty() ? $"Chapter {this._pageCounter}" : page.Title, pageName, this._navCounter++);
+            ebook.AddNavPoint(page.Title.IsEmpty() ? $"Chapter {this.PageCounter}" : page.Title, pageName, this.NavCounter++);
 
-            ConsoleDisplay.MainMessage(this._entry, $"Completed Page {this._pageCounter}");
-            this._pageCounter++;
+            ConsoleDisplay.MainMessage(this._entry, $"Completed Page {this.PageCounter}");
+            this.PageCounter++;
         }
 
-        private void RecoverImagePage(EPubDocument ebook, Page page)
+        private void RecoverImagePage(Document ebook, Page page)
         {
             var imageBytes = File.ReadAllBytes(page.Path);
-            ebook.AddImageData($"image{this._imageCounter}.png", imageBytes);
-            String p = this._pageTemplate.Replace("%%TITLE%%", "").Replace("%%CONTENT%%", $"<img src=\"image{this._imageCounter}.png\" alt=\"\"/>");
-            String pageName = $"page{this._pageCounter}.xhtml";
+            ebook.AddImageData($"image{this.ImageCounter}.png", imageBytes);
+            string p = this.PageTemplate.Replace("%%TITLE%%", string.Empty).Replace("%%CONTENT%%", $"<img src=\"image{this.ImageCounter}.png\" alt=\"\"/>");
+            string pageName = $"page{this.PageCounter}.xhtml";
             ebook.AddXhtmlData(pageName, p);
-            ebook.AddNavPoint(page.Title.IsEmpty() ? $"Page {this._pageCounter}" : page.Title, pageName, this._navCounter++);
-            ConsoleDisplay.MainMessage(this._entry, $"Completed Page {this._pageCounter}");
-            this._pageCounter++;
-            this._imageCounter++;
+            ebook.AddNavPoint(page.Title.IsEmpty() ? $"Page {this.PageCounter}" : page.Title, pageName, this.NavCounter++);
+            ConsoleDisplay.MainMessage(this._entry, $"Completed Page {this.PageCounter}");
+            this.PageCounter++;
+            this.ImageCounter++;
         }
 
-        private void SetMetadata(EPubDocument document)
+        private void SetMetadata(Document document)
         {
             document.AddAuthor(this._entry.Author);
             document.AddDescription(this._entry.Description);
             document.AddTitle(this._entry.Title);
         }
 
-        protected void AddPage(EPubDocument ebook, string content, string title, string currentUrl)
+        protected void AddPage(Document ebook, string content, string title, string currentUrl)
         {
-            String page = this._pageTemplate.Replace("%%TITLE%%", title).Replace("%%CONTENT%%", content);
+            string page = this.PageTemplate.Replace("%%TITLE%%", title).Replace("%%CONTENT%%", content);
 
             title = WebUtility.HtmlDecode(title);
-            String pageName = $"page{this._pageCounter}.xhtml";
+            string pageName = $"page{this.PageCounter}.xhtml";
             ebook.AddXhtmlData(pageName, page);
-            ebook.AddNavPoint(title.IsEmpty() ? $"Chapter {this._pageCounter}" : title, pageName, this._navCounter++);
+            ebook.AddNavPoint(title.IsEmpty() ? $"Chapter {this.PageCounter}" : title, pageName, this.NavCounter++);
 
-            ConsoleDisplay.MainMessage(this._entry, $"Completed Page {this._pageCounter}");
+            ConsoleDisplay.MainMessage(this._entry, $"Completed Page {this.PageCounter}");
 
 
             Unless(Settings.Instance.CommandLineOptions.SaveProgressFolder.IsEmpty(),
@@ -200,7 +192,7 @@ namespace WebComicToEbook.Scraper
                             Path = pagePath,
                             Type = WebComicEntry.ContentType.Text,
                             PageUrl = currentUrl,
-                            Order = this._pageCounter
+                            Order = this.PageCounter
                         });
 
                         File.WriteAllText(pagePath, page);
@@ -210,7 +202,7 @@ namespace WebComicToEbook.Scraper
                             JsonConvert.SerializeObject(this.Pages));
                     });
 
-            this._pageCounter++;
+            this.PageCounter++;
         }
 
         protected void DownloadImage(WebClient wc, MemoryStream destinationStream, string url)
@@ -229,24 +221,24 @@ namespace WebComicToEbook.Scraper
                 catch (WebException ex)
                 {
                     Task.Delay(1000).Wait();
-                    ConsoleDisplay.AddAdditionalMessageDisplay(_entry, $"{url} : {ex.Message}");
+                    ConsoleDisplay.AddAdditionalMessageDisplay(this._entry, $"{url} : {ex.Message}");
                 }
             }
         }
 
-        protected void AddImage(EPubDocument ebook, WebClient wc, string url, string pageUrl, string title = "")
+        protected void AddImage(Document ebook, WebClient wc, string url, string pageUrl, string title = "")
         {
             using (MemoryStream memImg = new MemoryStream())
             {
                 this.DownloadImage(wc, memImg, url);
-                ebook.AddImageData($"image{this._imageCounter}.png", memImg.GetBuffer());
+                ebook.AddImageData($"image{this.ImageCounter}.png", memImg.GetBuffer());
 
                 if (!Settings.Instance.CommandLineOptions.SaveProgressFolder.IsEmpty())
                 {
                     var pagesDir = Path.Combine(this._workingDirPath, this._sanitizedName, "Images");
                     Unless(Directory.Exists(pagesDir), () => Directory.CreateDirectory(pagesDir));
 
-                    var pagePath = Path.Combine(pagesDir, $"image{this._imageCounter}.png");
+                    var pagePath = Path.Combine(pagesDir, $"image{this.ImageCounter}.png");
 
                     this.Pages.Add(new Page()
                     {
@@ -254,7 +246,7 @@ namespace WebComicToEbook.Scraper
                         Path = pagePath,
                         Type = WebComicEntry.ContentType.Image,
                         PageUrl = pageUrl,
-                        Order = this._pageCounter
+                        Order = this.PageCounter
                     });
 
                     File.WriteAllBytes(pagePath, memImg.GetBuffer());
@@ -264,19 +256,20 @@ namespace WebComicToEbook.Scraper
                             JsonConvert.SerializeObject(this.Pages));
                 }
             }
-            String page = this._pageTemplate.Replace("%%TITLE%%", "").Replace("%%CONTENT%%", $"<img src=\"image{this._imageCounter}.png\" alt=\"\"/>");
-            String pageName = $"page{this._pageCounter}.xhtml";
+
+            string page = this.PageTemplate.Replace("%%TITLE%%", string.Empty).Replace("%%CONTENT%%", $"<img src=\"image{this.ImageCounter}.png\" alt=\"\"/>");
+            string pageName = $"page{this.PageCounter}.xhtml";
             ebook.AddXhtmlData(pageName, page);
-            ebook.AddNavPoint(title.IsEmpty() ? $"Page {this._pageCounter}" : title, pageName, this._navCounter++);
-            ConsoleDisplay.MainMessage(this._entry, $"Completed Page {this._pageCounter}");
-            this._pageCounter++;
-            this._imageCounter++;
+            ebook.AddNavPoint(title.IsEmpty() ? $"Page {this.PageCounter}" : title, pageName, this.NavCounter++);
+            ConsoleDisplay.MainMessage(this._entry, $"Completed Page {this.PageCounter}");
+            this.PageCounter++;
+            this.ImageCounter++;
         }
 
         private string DetectBestName(string baseName, out bool existing, int iter = 0)
         {
-            String suffix = iter == 0 ? "" : $" ({iter})";
-            String path = $"{baseName}{suffix}.epub";
+            string suffix = iter == 0 ? string.Empty : $" ({iter})";
+            string path = $"{baseName}{suffix}.epub";
             if (File.Exists(path))
             {
                 if (Settings.Instance.CommandLineOptions.Overwrite)
@@ -285,12 +278,14 @@ namespace WebComicToEbook.Scraper
                     existing = false;
                     return path;
                 }
-                return DetectBestName(baseName, out existing, ++iter);
+
+                return this.DetectBestName(baseName, out existing, ++iter);
             }
+
             existing = iter != 0;
             return path;
         }
 
-        protected abstract void ScrapeWebPage(WebComicEntry entry, EPubDocument ebook, string nextPageUrl = null);
+        protected abstract void ScrapeWebPage(WebComicEntry entry, Document ebook, string nextPageUrl = null);
     }
 }
