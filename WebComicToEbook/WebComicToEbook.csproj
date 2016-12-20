@@ -97,7 +97,7 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="config.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="EmbeddedResources\LiberationSerif-Bold.ttf" />
     <None Include="EmbeddedResources\LiberationSerif-BoldItalic.ttf" />

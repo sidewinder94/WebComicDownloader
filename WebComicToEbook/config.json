@@ -1,6 +1,18 @@
 [
   {
     "Parser": "XPath",
+    "Content": "Text",
+    "BaseAddress": "https://www.wattpad.com/273824263-replica-notes",
+    "AddressPattern": "https://www.wattpad.com/{0}",
+    "NextButtonSelector": "//a[.//*[contains(@class, 'next-up')]]/@href",
+    "ChapterContentSelector": "//pre/p",
+    "ChapterTitleSelector": "//header/h2",
+    "Author": "TripFoalins",
+    "Title": "Replica",
+    "Description": "In the uncertain world of 2076, everything rides on the whims of consolidated megacorporations as they vie for survival and global dominance. To protect themselves and their interests, these monolithic firms of tomorrow employ a new weapon in the shadow struggle for economic and political superiority: the genetically engineered \"artificial\" human. \n\nDesignated as \"genetic capital\" by the all reaching Hexadyn Biotechnical Conglomerate, Lucy 636 is one such individual. With perfect genes and mechanical enhancements, she is stronger, faster, and better than her peers.  Part cop, part assassin, part soldier, she fulfills the most extreme needs of Hexadyn's elite Special Investigations Department in the field. Not that she has a choice; she's company property.\n\nStill, following orders is never a guarantee you'll last on the razor's edge, and a single misstep can easily upend Lucy's fragile place in the world. When a routine seeming case goes south, Lucy quickly finds herself thrown down a path of betrayal and conspiracy... A path that will find her targeted, tested, and faced with revelations about herself that she may not be prepared to confront. \n\n[Violence. Strong Language.] \n\n----------------------------------------------------------------\n\nA much needed fresh start for my work here."
+  },
+  {
+    "Parser": "XPath",
     "Content": "Mixed",
     "BaseAddress": "https://shintranslations.com/vol-1-chapter-1/",
     "NextButtonSelector": "//@href[contains(text(), '→')]",

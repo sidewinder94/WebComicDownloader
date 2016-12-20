@@ -15,6 +15,8 @@ namespace WebComicToEbook.Configuration
 
         public string BaseAddress = string.Empty;
 
+        public string AddressPattern = "{0}";
+
         public string NextButtonSelector = string.Empty;
 
         public string ChapterTitleSelector = string.Empty;
@@ -36,6 +38,8 @@ namespace WebComicToEbook.Configuration
         public string Title;
 
         public string Description;
+
+        public bool IgnoreMissingChapterName = false;
 
         [JsonConverter(typeof(StringEnumConverter))]
         [DefaultValue(ContentType.Text)]

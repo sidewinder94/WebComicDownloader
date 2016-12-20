@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Xml.XPath;
 
@@ -11,12 +13,11 @@ using HtmlAgilityPack;
 
 using Newtonsoft.Json;
 
+using static Utils.Misc.Misc;
 using Utils.Text;
 
 using WebComicToEbook.Configuration;
 using WebComicToEbook.Utils;
-
-using static Utils.Misc.Misc;
 
 using EPubDocument = Epub.Document;
 
@@ -60,10 +61,17 @@ namespace WebComicToEbook.Scraper
                             }
                             catch
                             {
-                                ConsoleDisplay.AddAdditionalMessageDisplay(
-                                    entry,
-                                    $"Title not found for page {this.PageCounter}, replacing with default value");
-                                title = WebUtility.HtmlEncode($"Chapter - {this.PageCounter}");
+                                if (entry.IgnoreMissingChapterName)
+                                {
+                                    title = null;
+                                }
+                                else
+                                {
+                                    ConsoleDisplay.AddAdditionalMessageDisplay(
+                                        entry,
+                                        $"Title not found for page {this.PageCounter}, replacing with default value");
+                                    title = WebUtility.HtmlEncode($"Chapter - {this.PageCounter}");
+                                }
                             }
 
                             XPathNodeIterator xIter = xNav.Select(entry.ChapterContentSelector);
@@ -78,7 +86,7 @@ namespace WebComicToEbook.Scraper
                                     content += temp;
                                 }
 
-                                this.AddPage(ebook, content, title, currentUrl);
+                                this.AddPage(ebook, content, title, currentUrl, entry.IgnoreMissingChapterName);
                             }
                             else if (entry.Content == WebComicEntry.ContentType.Image)
                             {
@@ -96,7 +104,27 @@ namespace WebComicToEbook.Scraper
                                 }
                             }
 
-                            nextPageUrl = xNav.SelectSingleNode(entry.NextButtonSelector)?.Value;
+                            var tempNextPageUrl = xNav.SelectSingleNode(entry.NextButtonSelector)?.Value;
+
+                            try
+                            {
+                                var uri = new Uri(tempNextPageUrl);
+                                nextPageUrl = tempNextPageUrl;
+                            }
+                            catch (UriFormatException)
+                            {
+                                nextPageUrl = string.Format(entry.AddressPattern, tempNextPageUrl);
+                            }
+                            catch (ArgumentNullException)
+                            {
+                                //The end of the book.....
+                                return;
+                            }
+                            catch (NullReferenceException)
+                            {
+                                //The end of the book.....
+                                return;
+                            }
                         }
                     }
                 }
@@ -111,7 +139,13 @@ namespace WebComicToEbook.Scraper
             while (!nextPageUrl.IsEmpty());
         }
 
-        protected void AddCompositePage(Document ebook, XPathNodeIterator iter, string title, WebClient wc, string currentUrl, WebComicEntry entry)
+        protected void AddCompositePage(
+            Document ebook,
+            XPathNodeIterator iter,
+            string title,
+            WebClient wc,
+            string currentUrl,
+            WebComicEntry entry)
         {
             var page = this.PageTemplate.Replace("%%TITLE%%", title);
             var content = string.Empty;
@@ -177,13 +211,20 @@ namespace WebComicToEbook.Scraper
             this.PageCounter++;
         }
 
-        private string HandleMixedContent(Document ebook, XPathNodeIterator iter, WebClient wc, string imagesDir, Page p, string content, WebComicEntry entry)
+        private string HandleMixedContent(
+            Document ebook,
+            XPathNodeIterator iter,
+            WebClient wc,
+            string imagesDir,
+            Page p,
+            string content,
+            WebComicEntry entry)
         {
             if (entry.ImageTags.Contains(iter.Current.Name))
             {
                 string url;
 
-                //If the image link is in the value of the tag instead of an attibute, a dot should be used to indicate that
+                // If the image link is in the value of the tag instead of an attibute, a dot should be used to indicate that
                 if (entry.ImageSourceAttributes[iter.Current.Name] == ".")
                 {
                     url = iter.Current.Value;
@@ -201,12 +242,9 @@ namespace WebComicToEbook.Scraper
                     if (!Settings.Instance.CommandLineOptions.SaveProgressFolder.IsEmpty())
                     {
                         Unless(Directory.Exists(imagesDir), () => Directory.CreateDirectory(imagesDir));
-                        var imagePath = Path.Combine(
-                            imagesDir,
-                            $"image{this.ImageCounter}.png");
+                        var imagePath = Path.Combine(imagesDir, $"image{this.ImageCounter}.png");
                         File.WriteAllBytes(imagePath, memImg.GetBuffer());
-                        p.ImagesPath.Add(imagePath
-                        );
+                        p.ImagesPath.Add(imagePath);
                     }
                 }
 

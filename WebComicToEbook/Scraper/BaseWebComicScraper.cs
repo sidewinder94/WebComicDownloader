@@ -166,14 +166,18 @@ namespace WebComicToEbook.Scraper
             document.AddTitle(this._entry.Title);
         }
 
-        protected void AddPage(Document ebook, string content, string title, string currentUrl)
+        protected void AddPage(Document ebook, string content, string title, string currentUrl, bool ignoreMissingChapterName = false)
         {
             string page = this.PageTemplate.Replace("%%TITLE%%", title).Replace("%%CONTENT%%", content);
 
             title = WebUtility.HtmlDecode(title);
             string pageName = $"page{this.PageCounter}.xhtml";
             ebook.AddXhtmlData(pageName, page);
-            ebook.AddNavPoint(title.IsEmpty() ? $"Chapter {this.PageCounter}" : title, pageName, this.NavCounter++);
+
+            if ((title == null && !ignoreMissingChapterName) || title != null)
+            {
+                ebook.AddNavPoint(title.IsEmpty() ? $"Chapter {this.PageCounter}" : title, pageName, this.NavCounter++);
+            }
 
             ConsoleDisplay.MainMessage(this._entry, $"Completed Page {this.PageCounter}");
 
